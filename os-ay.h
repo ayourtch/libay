@@ -42,6 +42,7 @@ typedef void signal_func(int);
 signal_func * set_signal_handler(int signo, signal_func * func);
 void makedaemon(char *logname);
 time_t get_file_mtime(char *fname);
+int tap_alloc(char *dev);
 
 
 #endif
