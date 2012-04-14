@@ -136,7 +136,7 @@ int tap_alloc(char *dev)
 
   ifr.ifr_flags = IFF_TAP;
 
-  if( *dev )
+  if(dev && *dev )
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 
   if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){

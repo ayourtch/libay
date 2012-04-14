@@ -13,7 +13,7 @@ uuid-ay.o: uuid-ay.c uuid-ay.h uuid_sysdep.o
 dbuf-ay.o: dbuf-ay.c dbuf-ay.h
 timers-ay.o: timers-ay.c timers-ay.h dbuf-ay.o uuid-ay.o lists-ay.o debug-ay.o
 os-ay.o: os-ay.c os-ay.h debug-ay.o
-sock-ay.o: sock-ay.c sock-ay.h
+sock-ay.o: sock-ay.c sock-ay.h os-ay.o
 httpd-ay.o: httpd-ay.c httpd-ay.h sock-ay.o hash-ay.o debug-ay.o lists-ay.o
 
 

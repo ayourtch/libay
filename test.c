@@ -8,6 +8,7 @@ int main(int argc, char *argv[]) {
   int timeout;
   htable_t *ht;
   int res;
+  int tapi;
 
   set_debug_level(DBG_GLOBAL, 1000);
 
@@ -21,6 +22,7 @@ int main(int argc, char *argv[]) {
   debug(0,0, "Retrieve: %s", hfindss(ht, "key"));
 
   sock = bind_tcp_listener(2323);
+  tapi = attach_tap_interface(NULL);
   while(1) {
     if (timeout == 0) { 
       timeout = 1000;

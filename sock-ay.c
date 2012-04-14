@@ -36,6 +36,7 @@
 #include "dbuf-ay.h"
 #include "debug-ay.h"
 #include "lists-ay.h"
+#include "os-ay.h"
 /*
 #include "timers-ay.h"
 */
@@ -737,6 +738,23 @@ int
 bind_tcp_listener(int port)
 {
   return bind_tcp_listener_specific(NULL, port);
+}
+
+int attach_tap_interface(char *dev) 
+{
+  int s = tap_alloc(dev);
+  if (s > 0) {
+    int idx = sock_get_free_index(0);
+    init_idx(idx);
+    ufds[idx].fd = s;
+    ufds[idx].events |= POLLIN;
+    cdata[idx].connected = 1;
+    debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
+    return idx;
+  } else {
+    debug(DBG_GLOBAL, 0, "Could not get TAP device");
+    return -1;
+  }
 }
 
 /*@}*/
