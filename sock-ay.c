@@ -1006,6 +1006,9 @@ sock_send_data(int i, dbuf_t * d)
       nwrote =
         SSL_write(cdata[i].ssl,
                   &d->buf[cdata[i].written], d->dsize - cdata[i].written);
+    } else if(cdata[i].pcap) {
+      nwrote = pcap_inject(cdata[i].pcap, &d->buf[cdata[i].written], d->dsize - cdata[i].written);
+      debug(DBG_GLOBAL, 11, "Wrote %d bytes to pcap out of %d with prev written %d", nwrote, d->dsize, cdata[i].written);
     } else {
       nwrote =
         write(ufds[i].fd,
