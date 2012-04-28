@@ -394,6 +394,12 @@ ev_read(int idx, dbuf_t * d, void *u_ptr)
 
   if (cdata[idx].handlers.ev_read) {
     out = cdata[idx].handlers.ev_read(idx, d, u_ptr);
+  } else {
+    /* 
+     * make the absent event handler act like a sink,
+     * rather than forcing the local close by returning zero
+     */
+    out = d->dsize;
   }
   return out;
 }
