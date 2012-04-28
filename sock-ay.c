@@ -31,6 +31,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <poll.h>
+#include <pcap/pcap.h>
 
 #include "lib_sock_intern.h"
 #include "dbuf-ay.h"
@@ -756,6 +757,26 @@ int attach_tap_interface(char *dev)
     return -1;
   }
 }
+
+int attach_pcap(char *dev)
+{
+  char errbuf[PCAP_ERRBUF_SIZE] = "";
+  int s;
+  pcap_t *pcap = pcap_open_live(dev, 16384, 1, 1, errbuf);
+  if (pcap) {
+    int idx = sock_get_free_index(0);
+    init_idx(idx);
+    ufds[idx].fd = pcap_fileno(pcap);
+    ufds[idx].events |= POLLIN;
+    cdata[idx].connected = 1;
+    debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
+    return idx;
+  } else {
+    debug(DBG_GLOBAL, 0, "Could not get PCAP on %s: %s", dev, errbuf);
+    return -1;
+  }
+}
+
 
 /*@}*/
 

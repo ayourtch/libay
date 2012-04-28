@@ -23,7 +23,7 @@ libay.a: ${OBJS}
 libay.so: ${OBJS}
 	gcc -shared -Wl,-soname,libay.so.1 -o libay.so.1.0.1 ${OBJS}
 test: test.c libay.a
-	${CC} -g -o test test.c libay.a -lssl
+	${CC} -g -o test test.c libay.a -lssl -lpcap
 clean:
 	rm -f *.o
 	rm -f *.a

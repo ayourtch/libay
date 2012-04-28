@@ -9,6 +9,7 @@ int main(int argc, char *argv[]) {
   htable_t *ht;
   int res;
   int tapi;
+  int pcap;
 
   set_debug_level(DBG_GLOBAL, 1000);
 
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
 
   sock = bind_tcp_listener(2323);
   tapi = attach_tap_interface(NULL);
+  pcap = attach_pcap("wlan0");
   while(1) {
     if (timeout == 0) { 
       timeout = 1000;
