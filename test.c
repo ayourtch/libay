@@ -2,6 +2,15 @@
 #include <stdlib.h>
 #include "debug-ay.h"
 #include "hash-ay.h"
+#include "dbuf-ay.h"
+#include "sock-ay.h"
+
+int pcap;
+
+int pcap_read_ev(int idx, dbuf_t *d, void *p) {
+  return sock_send_data(pcap, d);
+}
+
 
 int main(int argc, char *argv[]) {
   int sock;
@@ -9,7 +18,8 @@ int main(int argc, char *argv[]) {
   htable_t *ht;
   int res;
   int tapi;
-  int pcap;
+  dbuf_t *d;
+  sock_handlers_t *hdl;
 
   set_debug_level(DBG_GLOBAL, 1000);
 
@@ -24,7 +34,10 @@ int main(int argc, char *argv[]) {
 
   sock = bind_tcp_listener(2323);
   tapi = attach_tap_interface(NULL);
-  pcap = attach_pcap("wlan0");
+  pcap = attach_pcap("wlan2");
+  hdl = cdata_get_handlers(pcap);
+  // this handler is to cause duplicate packets on the segment
+  // hdl->ev_read = pcap_read_ev;
   while(1) {
     if (timeout == 0) { 
       timeout = 1000;
