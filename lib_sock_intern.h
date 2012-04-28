@@ -54,6 +54,7 @@ typedef struct {
   struct sockaddr_in remote;    /* used for udp sockets - to store rem ip / port */
   int apptype;                  /* application type */
   dbuf_t *appdata;              /* per-session application-specific data */
+  void *pcap;                   /* for pcap sockets, pcap structure */
   int l7state;
   listitem_t *recv_list;        /* list of received to-be-parsed data for this socket */
   sock_handlers_t handlers;     /* structure with the function pointers for the handlers */

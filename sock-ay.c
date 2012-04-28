@@ -762,14 +762,16 @@ int attach_pcap(char *dev)
 {
   char errbuf[PCAP_ERRBUF_SIZE] = "";
   int s;
-  pcap_t *pcap = pcap_open_live(dev, 16384, 1, 1, errbuf);
+  pcap_t *pcap = pcap_open_live(dev, CHUNK_SZ, 1, 1, errbuf);
   if (pcap) {
     int idx = sock_get_free_index(0);
     init_idx(idx);
+    pcap_setnonblock(pcap, 1, errbuf);
     ufds[idx].fd = pcap_fileno(pcap);
     ufds[idx].events |= POLLIN;
     cdata[idx].connected = 1;
-    debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
+    cdata[idx].pcap = pcap;
+    debug(DBG_GLOBAL, 1, "PCAP on device (%s) added to index %d", dev, idx);
     return idx;
   } else {
     debug(DBG_GLOBAL, 0, "Could not get PCAP on %s: %s", dev, errbuf);
@@ -922,6 +924,11 @@ sock_receive_data(int i, dbuf_t * d)
   } else {
     if(cdata[i].is_ssl) {
       d->dsize = SSL_read(cdata[i].ssl, d->buf, d->size);
+    } else if (cdata[i].pcap) {
+      struct pcap_pkthdr ph;
+      void *p = (void*) pcap_next(cdata[i].pcap, &ph);
+      d->dsize = ph.caplen;
+      memcpy(d->buf, p, ph.caplen);
     } else {
       d->dsize = read(ufds[i].fd, d->buf, d->size);
     }
