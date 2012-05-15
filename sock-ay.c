@@ -759,7 +759,7 @@ int attach_tap_interface(char *dev)
     debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
     return idx;
   } else {
-    debug(DBG_GLOBAL, 0, "Could not get TAP device");
+    debug(DBG_GLOBAL, 0, "Could not get TAP device: %s", strerror(errno));
     return -1;
   }
 }
