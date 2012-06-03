@@ -35,7 +35,6 @@ enum {
   CHUNK_SZ = 20480,
 };
 
-typedef int (*sock_io_t)(int idx, dbuf_t *d);
 
 
 typedef struct {
@@ -56,6 +55,7 @@ typedef struct {
   struct sockaddr_in remote;    /* used for udp sockets - to store rem ip / port */
   int apptype;                  /* application type */
   dbuf_t *appdata;              /* per-session application-specific data */
+  void *private;		/* private type-specific pointer */
   sock_io_t do_recv;		/* Non-standard low-level receive handler */
   sock_io_t do_send;		/* Non-standard low-level send handler */
   int l7state;

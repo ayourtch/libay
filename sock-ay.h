@@ -51,6 +51,10 @@ enum {
 };
 
 
+/**** raw send/receive function (for special low levels) ****/
+typedef int (*sock_io_t)(int idx, dbuf_t *d, void *private);
+
+
 /**** Event handler function pointer types */
 typedef void (*sock_ev_channel_ready_t)(int idx, void *u_ptr);
 typedef int (*sock_ev_read_t)(int idx, dbuf_t *d, void *u_ptr);
@@ -66,7 +70,9 @@ typedef struct sock_handlers_t_tag {
 
 void print_socks(void);
 
-int sock_make_new(int fd);
+int sock_make_new(int fd, void *private);
+void sock_set_hooks(int idx, sock_io_t do_send, sock_io_t do_recv);
+
 int bind_tcp_listener_specific(char *addr, int port);
 int bind_tcp_listener(int port);
 int initiate_connect(char *addr, int port);

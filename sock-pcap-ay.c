@@ -42,19 +42,41 @@
 #include "timers-ay.h"
 */
 
+
+int 
+pcap_recv(int idx, dbuf_t *d, void *private) 
+{
+  struct pcap_pkthdr ph;
+  pcap_t *pcap = private;
+  void *p = (void*) pcap_next(pcap, &ph);
+  d->dsize = ph.caplen;
+  memcpy(d->buf, p, ph.caplen);
+  return d->dsize;
+}
+
+int 
+pcap_send(int idx, dbuf_t *d, void *private) 
+{
+  pcap_t *pcap = private;
+  int nwrote = pcap_inject(pcap, &d->buf[0], d->dsize);
+  debug(DBG_GLOBAL, 11, "Wrote %d bytes to pcap out " 
+            "of %d", nwrote, 
+	    d->dsize);
+  return nwrote;
+
+}
+
 int attach_pcap(char *dev)
 {
   char errbuf[PCAP_ERRBUF_SIZE] = "";
   int s;
+  
   pcap_t *pcap = pcap_open_live(dev, CHUNK_SZ, 1, 1, errbuf);
+  
   if (pcap) {
-    int idx = sock_get_free_index(0);
-    init_idx(idx);
+    int idx = sock_make_new(pcap_fileno(pcap), pcap);
     pcap_setnonblock(pcap, 1, errbuf);
-    ufds[idx].fd = pcap_fileno(pcap);
-    ufds[idx].events |= POLLIN;
-    cdata[idx].connected = 1;
-    cdata[idx].pcap = pcap;
+    sock_set_hooks(pcap_send, pcap_recv);
     debug(DBG_GLOBAL, 1, "PCAP on device (%s) added to index %d", dev, idx);
     return idx;
   } else {

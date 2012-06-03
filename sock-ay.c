@@ -130,6 +130,13 @@ sock_get_fd(int idx)
   return ufds[idx].fd;
 }
 
+void
+sock_set_hooks(int idx, sock_io_t do_send, sock_io_t do_recv)
+{
+  cdata[idx].do_send = do_send;
+  cdata[idx].do_recv = do_recv;
+}
+
 dbuf_t *
 cdata_get_appdata_dbuf(int idx, const char *appdata_sig)
 {
@@ -502,11 +509,12 @@ sock_get_free_index(int minimum)
   return i;
 }
 
-int sock_make_new(int fd) {
+int sock_make_new(int fd, void *private) {
   int idx = sock_get_free_index(0);
   init_idx(idx);
   ufds[idx].fd = fd;
   ufds[idx].events |= POLLIN;
+  cdata[idx].private = private;
   cdata[idx].connected = 1;
   return idx;
 }
@@ -551,7 +559,7 @@ initiate_connect(char *addr, int port)
     return -1;
   } else {
     if(errno == EINPROGRESS) {
-      idx = sock_make_new(s);
+      idx = sock_make_new(s, NULL);
       /*
          the socket connection once completed, appears to cause the POLLIN rather than pollout event 
        */
@@ -761,7 +769,7 @@ int attach_tap_interface(char *dev)
 {
   int s = tap_alloc(dev);
   if (s > 0) {
-    int idx = sock_make_new(s);
+    int idx = sock_make_new(s, NULL);
     debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
     return idx;
   } else {
@@ -906,7 +914,7 @@ int
 sock_receive_data(int i, dbuf_t * d)
 {
   if (cdata[i].do_recv) {
-    cdata[i].do_recv(i, d);
+    cdata[i].do_recv(i, d, cdata[i].private);
   } else {
     if(cdata[i].is_udp == 1) {
       socklen_t remote_len = sizeof(cdata[i].remote);
@@ -976,7 +984,7 @@ sock_send_data(int i, dbuf_t * d)
 {
   int nwrote;
   if (cdata[i].do_send) {
-    nwrote = cdata[i].do_send(i, d);
+    nwrote = cdata[i].do_send(i, d, cdata[i].private);
   } else {
     if(cdata[i].is_udp) {
       nwrote =
