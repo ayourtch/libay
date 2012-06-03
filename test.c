@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
 
   sock = bind_tcp_listener(2323);
   tapi = attach_tap_interface(NULL);
-  pcap = attach_pcap("wlan2");
+  // pcap = attach_pcap("wlan2");
   hdl = cdata_get_handlers(pcap);
   // this handler is to cause duplicate packets on the segment
   // hdl->ev_read = pcap_read_ev;

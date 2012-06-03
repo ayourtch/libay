@@ -124,6 +124,12 @@ dsend(int idx, dbuf_t * d)
   dlock(d);
 }
 
+int
+sock_get_fd(int idx)
+{
+  return ufds[idx].fd;
+}
+
 dbuf_t *
 cdata_get_appdata_dbuf(int idx, const char *appdata_sig)
 {
@@ -496,6 +502,15 @@ sock_get_free_index(int minimum)
   return i;
 }
 
+int sock_make_new(int fd) {
+  int idx = sock_get_free_index(0);
+  init_idx(idx);
+  ufds[idx].fd = fd;
+  ufds[idx].events |= POLLIN;
+  cdata[idx].connected = 1;
+  return idx;
+}
+
 
 /** 
  * initiate the connect to a given remote addr, return the index 
@@ -536,9 +551,7 @@ initiate_connect(char *addr, int port)
     return -1;
   } else {
     if(errno == EINPROGRESS) {
-      idx = sock_get_free_index(0);
-      init_idx(idx);
-      ufds[idx].fd = s;
+      idx = sock_make_new(s);
       /*
          the socket connection once completed, appears to cause the POLLIN rather than pollout event 
        */
@@ -559,8 +572,6 @@ initiate_connect(char *addr, int port)
   }
   return idx;
 }
-
-
 
 
 /**
@@ -750,11 +761,7 @@ int attach_tap_interface(char *dev)
 {
   int s = tap_alloc(dev);
   if (s > 0) {
-    int idx = sock_get_free_index(0);
-    init_idx(idx);
-    ufds[idx].fd = s;
-    ufds[idx].events |= POLLIN;
-    cdata[idx].connected = 1;
+    int idx = sock_make_new(s);
     debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
     return idx;
   } else {
@@ -898,22 +905,20 @@ sock_ssl_pollinout(int i, void *u_ptr)
 int
 sock_receive_data(int i, dbuf_t * d)
 {
-  if(cdata[i].is_udp == 1) {
-    socklen_t remote_len = sizeof(cdata[i].remote);
-
-    d->dsize =
-      recvfrom(ufds[i].fd, d->buf, d->size, 0,
-               (struct sockaddr *) &cdata[i].remote, &remote_len);
+  if (cdata[i].do_recv) {
+    cdata[i].do_recv(i, d);
   } else {
-    if(cdata[i].is_ssl) {
-      d->dsize = SSL_read(cdata[i].ssl, d->buf, d->size);
-    } else if (cdata[i].pcap) {
-      struct pcap_pkthdr ph;
-      void *p = (void*) pcap_next(cdata[i].pcap, &ph);
-      d->dsize = ph.caplen;
-      memcpy(d->buf, p, ph.caplen);
+    if(cdata[i].is_udp == 1) {
+      socklen_t remote_len = sizeof(cdata[i].remote);
+      d->dsize =
+	recvfrom(ufds[i].fd, d->buf, d->size, 0,
+		 (struct sockaddr *) &cdata[i].remote, &remote_len);
     } else {
-      d->dsize = read(ufds[i].fd, d->buf, d->size);
+      if(cdata[i].is_ssl) {
+	d->dsize = SSL_read(cdata[i].ssl, d->buf, d->size);
+      } else {
+	d->dsize = read(ufds[i].fd, d->buf, d->size);
+      }
     }
   }
   cdata[i].rx_count++;
@@ -970,26 +975,26 @@ int
 sock_send_data(int i, dbuf_t * d)
 {
   int nwrote;
-
-  if(cdata[i].is_udp) {
-    nwrote =
-      sendto(ufds[i].fd,
-             &d->buf[cdata[i].written],
-             d->dsize - cdata[i].written,
-             0, (struct sockaddr *) &cdata[i].remote,
-             sizeof(cdata[i].remote));
+  if (cdata[i].do_send) {
+    nwrote = cdata[i].do_send(i, d);
   } else {
-    if(cdata[i].is_ssl) {
+    if(cdata[i].is_udp) {
       nwrote =
-        SSL_write(cdata[i].ssl,
-                  &d->buf[cdata[i].written], d->dsize - cdata[i].written);
-    } else if(cdata[i].pcap) {
-      nwrote = pcap_inject(cdata[i].pcap, &d->buf[cdata[i].written], d->dsize - cdata[i].written);
-      debug(DBG_GLOBAL, 11, "Wrote %d bytes to pcap out of %d with prev written %d", nwrote, d->dsize, cdata[i].written);
+	sendto(ufds[i].fd,
+	       &d->buf[cdata[i].written],
+	       d->dsize - cdata[i].written,
+	       0, (struct sockaddr *) &cdata[i].remote,
+	       sizeof(cdata[i].remote));
     } else {
-      nwrote =
-        write(ufds[i].fd,
-              &d->buf[cdata[i].written], d->dsize - cdata[i].written);
+      if(cdata[i].is_ssl) {
+	nwrote =
+	  SSL_write(cdata[i].ssl,
+		    &d->buf[cdata[i].written], d->dsize - cdata[i].written);
+      } else {
+	nwrote =
+	  write(ufds[i].fd,
+		&d->buf[cdata[i].written], d->dsize - cdata[i].written);
+      }
     }
   }
   return nwrote;

@@ -66,6 +66,7 @@ typedef struct sock_handlers_t_tag {
 
 void print_socks(void);
 
+int sock_make_new(int fd);
 int bind_tcp_listener_specific(char *addr, int port);
 int bind_tcp_listener(int port);
 int initiate_connect(char *addr, int port);
@@ -78,6 +79,7 @@ int sock_one_cycle(int timeout, void *u_ptr);
 int init_ssl(char *cert_file_svr, char *key_file_svr, char *cert_file_clt,
          char *key_file_clt);
 
+int sock_get_fd(int idx);
 dbuf_t *cdata_get_appdata_dbuf(int idx, const char *appdata_sig);
 void cdata_set_appdata_dbuf(int idx, dbuf_t *d);
 
