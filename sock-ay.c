@@ -765,17 +765,26 @@ bind_tcp_listener(int port)
   return bind_tcp_listener_specific(NULL, port);
 }
 
-int attach_tap_interface(char *dev) 
+int attach_tuntap_interface(char *dev, int s) 
 {
-  int s = tap_alloc(dev);
   if (s > 0) {
     int idx = sock_make_new(s, NULL);
-    debug(DBG_GLOBAL, 1, "TAP device (%s) added to index %d", dev, idx);
+    debug(DBG_GLOBAL, 1, "TUN/TAP device (%s) added to index %d", dev, idx);
     return idx;
   } else {
-    debug(DBG_GLOBAL, 0, "Could not get TAP device: %s", strerror(errno));
+    debug(DBG_GLOBAL, 0, "Could not get TUN/TAP device: %s", strerror(errno));
     return -1;
   }
+}
+
+int attach_tap_interface(char *dev) 
+{
+  return attach_tuntap_interface(dev, tap_alloc(dev));
+}
+
+int attach_tun_interface(char *dev) 
+{
+  return attach_tuntap_interface(dev, tun_alloc(dev));
 }
 
 /*@}*/

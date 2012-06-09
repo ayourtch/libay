@@ -77,6 +77,7 @@ int bind_tcp_listener_specific(char *addr, int port);
 int bind_tcp_listener(int port);
 int initiate_connect(char *addr, int port);
 int attach_tap_interface(char *dev);
+int attach_tun_interface(char *dev);
 
 
 
