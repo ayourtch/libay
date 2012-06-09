@@ -6,9 +6,15 @@
 #include "sock-ay.h"
 
 int pcap;
+int tapi;
 
 int pcap_read_ev(int idx, dbuf_t *d, void *p) {
   return sock_send_data(pcap, d);
+}
+
+int tun_read_ev(int idx, dbuf_t *d, void *p) {
+  printf("Got packet, sending back!\n");
+  return sock_send_data(tapi, d);
 }
 
 
@@ -17,7 +23,6 @@ int main(int argc, char *argv[]) {
   int timeout;
   htable_t *ht;
   int res;
-  int tapi;
   dbuf_t *d;
   sock_handlers_t *hdl;
 
@@ -33,11 +38,13 @@ int main(int argc, char *argv[]) {
   debug(0,0, "Retrieve: %s", hfindss(ht, "key"));
 
   sock = bind_tcp_listener(2323);
-  tapi = attach_tap_interface(NULL);
+  tapi = attach_tun_interface(NULL);
   // pcap = attach_pcap("wlan2");
   hdl = cdata_get_handlers(pcap);
   // this handler is to cause duplicate packets on the segment
   // hdl->ev_read = pcap_read_ev;
+  hdl = cdata_get_handlers(tapi);
+  hdl->ev_read = tun_read_ev;
   while(1) {
     if (timeout == 0) { 
       timeout = 1000;
