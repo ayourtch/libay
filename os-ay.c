@@ -124,7 +124,7 @@ time_t get_file_mtime(char *fname)
 
 }
 
-int tap_alloc(char *dev) 
+int tuntap_alloc(char *dev, int kind) 
 {
   struct ifreq ifr;
   int fd, err;
@@ -134,7 +134,7 @@ int tap_alloc(char *dev)
 
   memset(&ifr, 0, sizeof(ifr));
 
-  ifr.ifr_flags = IFF_TAP;
+  ifr.ifr_flags = kind;
 
   if(dev && *dev )
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
@@ -147,6 +147,15 @@ int tap_alloc(char *dev)
 }
 
 
+int tap_alloc(char *dev) 
+{
+  return tuntap_alloc(dev, IFF_TAP);
+}
+
+int tun_alloc(char *dev) 
+{
+  return tuntap_alloc(dev, IFF_TUN);
+}
 
 /*@}*/
 
