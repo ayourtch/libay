@@ -31,6 +31,7 @@
 #include <sys/resource.h>
 #include <unistd.h>
 #include <poll.h>
+#include <termios.h>
 
 #include "lib_sock_intern.h"
 #include "dbuf-ay.h"
@@ -785,6 +786,36 @@ int attach_tap_interface(char *dev)
 int attach_tun_interface(char *dev) 
 {
   return attach_tuntap_interface(dev, tun_alloc(dev));
+}
+
+struct termios ti_saved;
+int fd_stdin = 1;
+
+int attach_stdin(int raw)
+{
+  struct termios ti;
+  struct termios *termios_p = &ti;
+  int idx = sock_make_new(fd_stdin, NULL);
+  tcgetattr(fd_stdin, &ti_saved);
+  fcntl(fd_stdin, F_SETFL, O_NONBLOCK);
+
+  if (raw) {
+    tcgetattr(fd_stdin, &ti);
+    termios_p->c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
+    // termios_p->c_oflag &= ~OPOST;
+    termios_p->c_oflag |= ONLCR;
+    termios_p->c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+    termios_p->c_cflag &= ~(CSIZE | PARENB);
+    termios_p->c_cflag |= CS8;
+    tcsetattr(fd_stdin, 0, &ti);
+  }
+  return idx;
+}
+
+int detach_stdin() 
+{
+  tcsetattr(fd_stdin, 0, &ti_saved);
+  return 1;
 }
 
 /*@}*/
