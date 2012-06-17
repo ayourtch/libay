@@ -264,7 +264,7 @@ dbuf_t *hole_fill_middle(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
 
 dbuf_t *dperform_reasm(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint32_t xid, char *data, 
                        uint16_t len, uint16_t offs, int more) {
-  uint16_t hoffs0;
+  uint16_t hoffs0 = 0xfafa;
   uint16_t hoffs1;
   uint16_t hoffs2;
   dbuf_t *d = chk->d;
