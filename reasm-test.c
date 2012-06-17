@@ -73,6 +73,7 @@ void handle_char(char c) {
       fprintf(stderr, "%c %c", 8, 8);
     }
   } else if ((c == '\r') || (c == '\n')) {
+    fprintf(stderr, "\n");
     debug(0,0, "Cmd: '%s'", cmdbuf);
     handle_command(cmdbuf);
     cmdlen = 0;
