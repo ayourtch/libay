@@ -1,4 +1,4 @@
-all: test reasm-test
+all: test reasm-test reasm-tests-run
 CFLAGS=-g
 
 CC=gcc
@@ -27,6 +27,8 @@ test: test.c libay.a
 	${CC} -g -o test test.c libay.a -lssl 
 reasm-test: reasm-test.c libay.a
 	${CC} -g -o reasm-test reasm-test.c libay.a -lssl 
+reasm-tests-run: reasm-test
+	./reasm-tests/runall
 # -lpcap
 clean:
 	rm -f *.o

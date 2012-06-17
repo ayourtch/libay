@@ -1,0 +1,5 @@
+#!/bin/sh
+# cat reasm-tests/input/$1 | ./reasm-test 2>&1 | cut -c 40-100
+cat reasm-tests/input/$1 | ./reasm-test 2>&1 | sed -e 's///g' | cut -c 28-1000
+ 
+ 

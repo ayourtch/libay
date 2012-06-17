@@ -1,0 +1,19 @@
+LOG-0000-0000: Press Ctrl-C to quit
+
+LOG-0000-0000: Cmd: 'r 0 0 1 1111'
+LOG-0000-0000: Reassembly in progress
+
+LOG-0000-0000: Cmd: 'r 0 8 1 3333'
+LOG-0000-0000: Reassembly in progress
+
+LOG-0000-0000: Cmd: 'r 0 4 1 2222'
+LOG-0000-0000: Reassembly in progress
+
+LOG-0000-0000: Cmd: 'r 0 12 0 4444'
+LOG-0000-0000: Reassembly complete
+LOG-1006-0000: 00000000:   31 31 31 31 32 32 32 32 33 33 33 33 34 34 34 34   1111222233334444
+
+LOG-0000-0000: Cmd: 'q'
+
+
+

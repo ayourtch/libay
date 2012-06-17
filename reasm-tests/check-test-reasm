@@ -1,0 +1,2 @@
+#!/bin/sh
+./reasm-tests/run-test-reasm $1 | diff -c reasm-tests/output/$1 /dev/stdin 2>&1

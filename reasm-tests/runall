@@ -1,0 +1,14 @@
+#!/bin/sh
+echo ==== Running reassembly code tests ====
+for i in `ls reasm-tests/input`; do
+  echo -n "$i: "
+  RES=`./reasm-tests/check-test-reasm $i`
+  if [ "x${RES}" = "x" ]; then
+    echo "ok"
+  else
+    echo "FAIL"
+    echo $RES
+    exit 1
+  fi
+done
+exit 0
