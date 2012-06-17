@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include <assert.h>
+#include <time.h>
+#include <sys/queue.h>
 #include "dbuf-ay.h"
 #include "debug-ay.h"
 #include "hash-ay.h"
@@ -37,18 +39,22 @@ of the very first empty chunk.
 
 typedef struct reasm_chunk_t {
   uint32_t xid;  
-  uint32_t deadline; /* reassembly deadline */
+  time_t deadline; /* reassembly deadline */
+  time_t atime; /* last access time */
   uint16_t maxfrags;
   dbuf_t *d;
   uint16_t hole; /* the start of the first piece that is not filled */
   uint16_t esize; /* expected size. Set either to {M|F}TU, or by last frag */
+  TAILQ_ENTRY(reasm_chunk_t) entries;
 } reasm_chunk_t;
 
 typedef struct reasm_pile_struct_t {
   htable_t *chs; /* chunks in reassembly */
   uint16_t maxfrags;  /* max frags per chunk for reassembly */
   int mtu;  /* max PDU size */
-  int ftu;  /* frequent PDU size */
+  int ftu;  /* frequent PDU size */ 
+  time_t reasm_timeout; /* how many sec to keep the state for reassembly */
+  TAILQ_HEAD(lru_head, reasm_chunk_t) lru;
 } reasm_pile_struct_t;
 
 #define HOLE_MIN_LENGTH (sizeof(uint16_t) + sizeof(uint16_t))
@@ -65,9 +71,11 @@ void *make_reasm_pile() {
    reasm_pile_struct_t *rp;
    dbuf_t *d = dalloc(sizeof(reasm_pile_struct_t));
    rp = (void*) d->buf;
+   TAILQ_INIT(&rp->lru);
    
    rp->chs = halloc(4, 16);
    rp->maxfrags = 32;
+   rp->reasm_timeout = 10;
    rp->mtu = 500* 8;
    rp->ftu = 250* 8;
 
@@ -120,6 +128,20 @@ int hole_grow(reasm_chunk_t *chk, uint16_t spot, uint16_t newsz) {
   return 1;
 }
 
+void reset_timeout(reasm_pile_struct_t *rp, reasm_chunk_t *chk) {
+  chk->deadline = chk->atime + rp->reasm_timeout;
+  TAILQ_REMOVE(&rp->lru, chk, entries);
+  TAILQ_INSERT_TAIL(&rp->lru, chk, entries);
+}
+
+
+void dispose_chk(reasm_pile_struct_t *rp, reasm_chunk_t *chk) {
+  hdelete(rp->chs, &chk->xid, sizeof(chk->xid), NULL, NULL, NULL);
+  TAILQ_REMOVE(&rp->lru, chk, entries);
+  /* this is called from callback destructor => free(chk); */
+}
+  
+
 /* Check if the reassembly is done for the PDU, and if yes, 
    perform the necessary cleanups and return the ready dbuf */
 
@@ -132,6 +154,7 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
     chk->esize = offs+len;
   }
   memcpy(&chk->d->buf[offs], data, len);
+  reset_timeout(rp, chk);
   if (d->dsize < offs+len) {
     d->dsize = offs+len;
   }
@@ -144,8 +167,7 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
      * do not unlock since we should have locked it anyway
      */
     d->dsize = chk->esize;
-    hdelete(rp->chs, &chk->xid, sizeof(chk->xid), NULL, NULL, NULL);
-    /* this is called from callback destructor => free(chk); */
+    dispose_chk(rp, chk);
     return d;
   }
   return NULL;
@@ -330,10 +352,29 @@ int chk_destructor(void *key, int key_len, void *data_old, void *data_new) {
   return 1;
 }
 
+void check_timeouts(reasm_pile_struct_t *rp, time_t now) {
+  reasm_chunk_t *chk; 
+  reasm_chunk_t *chk_next;
+  debug(DBG_REASM, 50, "LRU Traversing start, now: %ld", now);
+  for (chk = rp->lru.tqh_first; chk != NULL; chk = chk_next) {
+    chk_next = chk->entries.tqe_next;
+    debug(DBG_REASM, 50, "LRU chunk xid: %lu, deadline: %ld", chk->xid, chk->deadline); 
+    if (chk->deadline < now) {
+      debug(DBG_REASM, 50, "chunk xid %lu deadline (%ld) < now (%ld), deleting", chk->xid, chk->deadline, now);
+      dunlock(chk->d);
+      dispose_chk(rp, chk);
+    }
+  }
+  debug(DBG_REASM, 50, "LRU Traversing end");
+}
 
-dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t offs, int more) {
+dbuf_t *dtry_reasm_timed(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t offs, int more, time_t now) {
   reasm_pile_struct_t *rp = (void *)(((dbuf_t *)pile)->buf);
   reasm_chunk_t *chk;
+  
+  if (now > 0) {
+    check_timeouts(rp, now);
+  }
 
   if(offs + len > rp->mtu) {
     debug(DBG_REASM, 10, "Offset + length (%d + %d) of fragment > MTU (%d), discard", offs, len, rp->mtu); 
@@ -353,9 +394,11 @@ dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t 
     chk->hole = 0;
     chk->esize = rp->ftu;
     chk->d = dalloc(chk->esize);
+    chk->deadline = now + rp->reasm_timeout;
     memset(chk->d->buf, 0xaa, chk->d->size);
     hole_set(chk, 0, chk->esize, 0);
     hinsert(rp->chs, &xid, sizeof(xid), chk, chk_destructor, NULL, NULL, NULL); 
+    TAILQ_INSERT_TAIL(&rp->lru, chk, entries);
   } else {
     debug(DBG_REASM, 10, "Reasm chunk %lu found", xid); 
   }
@@ -371,9 +414,14 @@ dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t 
     chk->esize = chk->d->size;
     debug(DBG_REASM, 100, "Fresh chunk data after growth to MTU:"); 
     debug_dump(DBG_REASM, 100, chk->d->buf, chk->d->size);
-  }
+  } 
+  chk->atime = now;
+
 
   return dperform_reasm(rp, chk, xid, data, len, offs, more);
 }
 
 
+dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t offs, int more) {
+  return dtry_reasm_timed(pile, xid, data, len, offs, more, 0);
+}

@@ -28,7 +28,7 @@ void handle_command(char *cmd) {
 
   if (0 == strcmp(op, "h")) {
     debug(0,0, "d <level>");
-    debug(0,0, "r <xid> <offs> <mf> <data>");
+    debug(0,0, "r <xid> <offs> <mf> <data> [now]");
   }  
   if (0 == strcmp(op, "d")) {
     set_debug_level(DBG_REASM, atoi(strtok(NULL, " ")));
@@ -44,7 +44,12 @@ void handle_command(char *cmd) {
     uint16_t offs = atoi(strtok(NULL, " "));
     int mf = atoi(strtok(NULL, " "));
     char *data = strtok(NULL, " ");
-    d = dtry_reasm(pile, xid, data, strlen(data), offs, mf);
+    char *now_s = strtok(NULL, " ");
+    if (now_s) {
+      d = dtry_reasm_timed(pile, xid, data, strlen(data), offs, mf, atoi(now_s));
+    } else {
+      d = dtry_reasm(pile, xid, data, strlen(data), offs, mf);
+    }
     if(d) {
       debug(0,0, "Reassembly complete");
       debug_dump(DBG_REASM, 0, d->buf, d->dsize);
