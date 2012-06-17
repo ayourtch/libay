@@ -75,7 +75,7 @@ void *make_reasm_pile() {
    
    rp->chs = halloc(4, 16);
    rp->maxfrags = 32;
-   rp->reasm_timeout = 10;
+   rp->reasm_timeout = 20;
    rp->mtu = 500* 8;
    rp->ftu = 250* 8;
 
