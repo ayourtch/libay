@@ -51,6 +51,8 @@ typedef struct reasm_pile_struct_t {
   int ftu;  /* frequent PDU size */
 } reasm_pile_struct_t;
 
+#define HOLE_MIN_LENGTH (sizeof(uint16_t) + sizeof(uint16_t))
+
 static inline uint16_t *du16(dbuf_t *d, int idx) {
   return (uint16_t *) &d->buf[idx];
 }
@@ -126,7 +128,7 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
   dbuf_t *d = chk->d;
 
   if (!more) {
-    debug(DBG_REASM, 20, "Set desired length to %d = %d + %d\n", chk->esize, offs, len);
+    debug(DBG_REASM, 20, "Set desired length %d <= %d + %d\n", chk->esize, offs, len);
     chk->esize = offs+len;
   }
   memcpy(&chk->d->buf[offs], data, len);
@@ -177,6 +179,10 @@ dbuf_t *hole_fill_begin(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t ho
 
   debug(DBG_REASM, 20, "hole_fill_begin hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
         hoffs1, hoffs0, data, len, offs, more);
+  if (*du16(chk->d, hoffs1) - len < HOLE_MIN_LENGTH) {
+    debug(DBG_REASM, 0, "Attempting to hole_fill_begin with too small resulting hole (%d - %d), abort.", *du16(chk->d, hoffs1), len);
+    return NULL;
+  }
 
   /* prepare the new head of hole - store the shorter length at new start */
   *du16(chk->d, hoffs1 + len) = *du16(chk->d, hoffs1) - len;
@@ -205,6 +211,10 @@ dbuf_t *hole_fill_end(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t hoff
    * the data len record more to the front, to end of empty space 
    */
   uint16_t odlen = *du16d(chk->d, hoffs1);
+  if (*du16(chk->d, hoffs1) - len < HOLE_MIN_LENGTH) {
+    debug(DBG_REASM, 0, "Attempting to hole_fill_end with too small resulting hole (%d - %d), abort.", *du16(chk->d, hoffs1), len);
+    return NULL;
+  }
   *du16(chk->d, hoffs1) -= len;
   *du16d(chk->d, hoffs1) = odlen + len;
 
@@ -223,6 +233,17 @@ dbuf_t *hole_fill_middle(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
 
   debug(DBG_REASM, 20, "hole_fill_middle hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
         hoffs1, hoffs0, data, len, offs, more);
+
+  if (offs - hoffs1 < HOLE_MIN_LENGTH) {
+    debug(DBG_REASM, 0, "Attempting to hole_fill_middle with too small resulting hole in the start (%d - %d), abort.", 
+          offs, hoffs1);
+    return NULL;
+  }
+  if (ohlen - (offs - hoffs1) - len < HOLE_MIN_LENGTH) {
+    debug(DBG_REASM, 0, "Attempting to hole_fill_middle with too small end hole %d=(%d-(%d-%d)-%d), abort.", 
+          ohlen - (offs - hoffs1) - len, ohlen, offs, hoffs1, len);
+    return NULL;
+  }
 
   *du16(chk->d, hoffs1) = offs - hoffs1;
   *du16d(chk->d, hoffs1) = len;
@@ -310,6 +331,10 @@ dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t 
 
   if(offs + len > rp->mtu) {
     debug(DBG_REASM, 10, "Offset + length (%d + %d) of fragment > MTU (%d), discard", offs, len, rp->mtu); 
+    return NULL;
+  }
+  if ((offs > 0) && (offs < HOLE_MIN_LENGTH)) {
+    debug(DBG_REASM, 10, "Offset %d less than min hole length %d\n", offs, HOLE_MIN_LENGTH);
     return NULL;
   }
   
