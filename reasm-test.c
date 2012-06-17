@@ -16,8 +16,15 @@ int cmdlen = 0;
 
 
 void handle_command(char *cmd) {
-  char *op = strtok(cmd, " ");
+  char *op;
   dbuf_t *d;
+  if (NULL == cmd) {
+    return;
+  }
+  op = strtok(cmd, " ");
+  if (NULL == op) {
+    return;
+  }
   if (0 == strcmp(op, "h")) {
     debug(0,0, "r <xid> <offs> <mf> <data>");
   }  
@@ -49,10 +56,7 @@ void debug_redraw_cb(int idlecall) {
   }
 }
 
-int stdi;
-
-int stdin_read_ev(int idx, dbuf_t *d, void *p) {
-  char c = d->buf[0];
+void handle_char(char c) {
   if (c == 3 ) { 
     detach_stdin();
     printf("\n\n\n");
@@ -63,18 +67,25 @@ int stdin_read_ev(int idx, dbuf_t *d, void *p) {
       cmdbuf[--cmdlen] = 0;
       fprintf(stderr, "%c %c", 8, 8);
     }
-  } else if (c == '\r') {
-    debug(0,0, "Cmd: %s", cmdbuf);
+  } else if ((c == '\r') || (c == '\n')) {
+    debug(0,0, "Cmd: '%s'", cmdbuf);
     handle_command(cmdbuf);
     cmdlen = 0;
     cmdbuf[cmdlen] = 0;
   } else {
     fprintf(stderr, "%c", c);
-    cmdbuf[cmdlen++] = d->buf[0];
+    cmdbuf[cmdlen++] = c;
     cmdbuf[cmdlen] = 0;
-    
   }
-  
+}
+
+int stdi;
+
+int stdin_read_ev(int idx, dbuf_t *d, void *p) {
+  int i;
+  for(i=0; i<d->dsize; i++) {
+    handle_char(d->buf[i]);
+  }
   return d->dsize;
 }
 

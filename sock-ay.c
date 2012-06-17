@@ -789,7 +789,7 @@ int attach_tun_interface(char *dev)
 }
 
 struct termios ti_saved;
-int fd_stdin = 1;
+int fd_stdin = 0;
 
 int attach_stdin(int raw)
 {
