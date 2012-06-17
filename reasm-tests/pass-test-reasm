@@ -1,0 +1,3 @@
+#!/bin/sh
+echo Generating passing result for $1
+./reasm-tests/run-test-reasm $1 > reasm-tests/output/$1

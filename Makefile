@@ -29,6 +29,8 @@ reasm-test: reasm-test.c libay.a
 	${CC} -g -o reasm-test reasm-test.c libay.a -lssl 
 reasm-tests-run: reasm-test
 	./reasm-tests/runall
+reasm-pass: reasm-test
+	./reasm-tests/passone
 # -lpcap
 clean:
 	rm -f *.o

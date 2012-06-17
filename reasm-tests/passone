@@ -7,7 +7,7 @@ for i in `ls reasm-tests/input`; do
     echo "ok"
   else
     echo "FAIL"
-    echo "${RES}" 
+    ./reasm-tests/pass-test-reasm $i 
     exit 1
   fi
 done
