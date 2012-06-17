@@ -25,9 +25,14 @@ void handle_command(char *cmd) {
   if (NULL == op) {
     return;
   }
+
   if (0 == strcmp(op, "h")) {
+    debug(0,0, "d <level>");
     debug(0,0, "r <xid> <offs> <mf> <data>");
   }  
+  if (0 == strcmp(op, "d")) {
+    set_debug_level(DBG_REASM, atoi(strtok(NULL, " ")));
+  }
   if (0 == strcmp(op, "q")) {
     detach_stdin();
     printf("\n\n\n");
@@ -42,7 +47,7 @@ void handle_command(char *cmd) {
     d = dtry_reasm(pile, xid, data, strlen(data), offs, mf);
     if(d) {
       debug(0,0, "Reassembly complete");
-      debug_dump(DBG_REASM, 100, d->buf, d->dsize);
+      debug_dump(DBG_REASM, 0, d->buf, d->dsize);
     } else {
       debug(0,0, "Reassembly in progress");
     }
@@ -98,7 +103,6 @@ int main(int argc, char *argv[]) {
   sock_handlers_t *hdl;
 
   // set_debug_level(DBG_GLOBAL, 1000);
-  set_debug_level(DBG_REASM, 1000);
 
   pile = make_reasm_pile();
 
