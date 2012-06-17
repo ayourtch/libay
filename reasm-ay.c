@@ -132,8 +132,11 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
     chk->esize = offs+len;
   }
   memcpy(&chk->d->buf[offs], data, len);
-  debug(DBG_REASM, 20, "Offs: %d, len: %d, chk->esize: %d, chk->hole: %d", 
-        offs, len, chk->esize, chk->hole);
+  if (d->dsize < offs+len) {
+    d->dsize = offs+len;
+  }
+  debug(DBG_REASM, 20, "Offs: %d, len: %d, chk->esize: %d, chk->hole: %d, d->dsize: %d", 
+        offs, len, chk->esize, chk->hole, d->dsize);
   debug_dump(DBG_REASM, 100, d->buf, d->size);
   if (chk->esize == chk->hole) {
     /*
@@ -281,8 +284,11 @@ dbuf_t *dperform_reasm(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint32_t xid
     return NULL; 
   }
   debug(DBG_REASM, 10, "Found holes %d for (%d, %d) in chunk %lu", hoffs1, offs, len, xid);
-  if (!more && (chk->esize < chk->d->size)) { 
-    debug(DBG_REASM, 10, "MF=0 in the middle of the packet, discard (offs: %d, len: %d), esize: %d", offs, len, chk->esize);
+  if (!more && ((chk->esize < chk->d->size) || 
+                ( (chk->d->dsize > 0) && (chk->d->dsize < chk->esize) && (offs < chk->d->dsize)) 
+               ) ) { 
+    debug(DBG_REASM, 10, "MF=0 in the middle of the packet, discard (offs: %d, len: %d), esize: %d, dsize: %d", 
+                         offs, len, chk->esize, chk->d->dsize);
     return NULL;
   }
 
