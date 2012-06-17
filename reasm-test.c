@@ -1,18 +1,80 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "debug-ay.h"
 #include "hash-ay.h"
 #include "dbuf-ay.h"
 #include "sock-ay.h"
+#include "reasm-ay.h"
 
-int stdi;
+#define CMDSZ 200
 
-int stdin_read_ev(int idx, dbuf_t *d, void *p) {
-  if (d->buf[0] == 'q' ) { 
+void *pile;
+
+char cmdbuf[CMDSZ];
+int cmdlen = 0;
+
+
+void handle_command(char *cmd) {
+  char *op = strtok(cmd, " ");
+  dbuf_t *d;
+  if (0 == strcmp(op, "h")) {
+    debug(0,0, "r <xid> <offs> <mf> <data>");
+  }  
+  if (0 == strcmp(op, "q")) {
     detach_stdin();
     printf("\n\n\n");
     exit(1);
   }
+
+  if (0 == strcmp(op, "r")) {
+    uint32_t xid = atol(strtok(NULL, " "));
+    uint16_t offs = atoi(strtok(NULL, " "));
+    int mf = atoi(strtok(NULL, " "));
+    char *data = strtok(NULL, " ");
+    d = dtry_reasm(pile, xid, data, strlen(data), offs, mf);
+    if(d) {
+      debug(0,0, "Reassembly complete");
+      debug_dump(DBG_REASM, 100, d->buf, d->dsize);
+    } else {
+      debug(0,0, "Reassembly in progress");
+    }
+  }
+
+}
+
+void debug_redraw_cb(int idlecall) {
+  if (!idlecall) {
+    fprintf(stderr, "> %s", cmdbuf);
+  }
+}
+
+int stdi;
+
+int stdin_read_ev(int idx, dbuf_t *d, void *p) {
+  char c = d->buf[0];
+  if (c == 3 ) { 
+    detach_stdin();
+    printf("\n\n\n");
+    exit(1);
+  }
+  if (c == 0x7f) {
+    if(cmdlen>0) {
+      cmdbuf[--cmdlen] = 0;
+      fprintf(stderr, "%c %c", 8, 8);
+    }
+  } else if (c == '\r') {
+    debug(0,0, "Cmd: %s", cmdbuf);
+    handle_command(cmdbuf);
+    cmdlen = 0;
+    cmdbuf[cmdlen] = 0;
+  } else {
+    fprintf(stderr, "%c", c);
+    cmdbuf[cmdlen++] = d->buf[0];
+    cmdbuf[cmdlen] = 0;
+    
+  }
+  
   return d->dsize;
 }
 
@@ -24,12 +86,17 @@ int main(int argc, char *argv[]) {
   dbuf_t *d;
   sock_handlers_t *hdl;
 
-  set_debug_level(DBG_GLOBAL, 0);
+  // set_debug_level(DBG_GLOBAL, 1000);
+  set_debug_level(DBG_REASM, 1000);
+
+  pile = make_reasm_pile();
 
   stdi = attach_stdin(1); 
   hdl = cdata_get_handlers(stdi); 
   hdl->ev_read = stdin_read_ev;
-  printf("Press q to quit\n");
+  debug_will_need_redraw(debug_redraw_cb);
+  debug(0,0, "Press Ctrl-C to quit");
+
 
   timeout = 1000;
   while(1) {

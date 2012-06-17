@@ -86,6 +86,22 @@ is_debug_on(int type, int level)
   }
 }
 
+static int debug_needs_erase = 0;
+static debug_redraw_cb_t *debug_redraw_cb = NULL;
+
+void debug_will_need_redraw(debug_redraw_cb_t *cb) {
+  debug_needs_erase = 1;
+  debug_redraw_cb = cb;
+}
+
+void debug_redraw_if_needed() {
+  if (debug_redraw_cb) {
+    (*debug_redraw_cb)(debug_needs_erase);
+    debug_needs_erase = 1;
+  }
+}
+
+
 /**
  * Routine to print the debug messages with timestamp.
  *
@@ -110,6 +126,11 @@ debug(int type, int level, const char *fmt, ...)
     gettimeofday(&tv, NULL);
     asctime_r(localtime(&tv.tv_sec), date_buf);
     date_buf[strlen(date_buf) - 6] = 0;
+
+    if(debug_needs_erase) {
+      fprintf(stderr, "\r");
+      debug_needs_erase = 0;
+    }
 
 
     fprintf(stderr, "%s.%06d LOG-%04d-%04d: ", date_buf, (int) tv.tv_usec,

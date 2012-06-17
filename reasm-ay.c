@@ -1,5 +1,7 @@
 #include <stdint.h>
+#include <assert.h>
 #include "dbuf-ay.h"
+#include "debug-ay.h"
 #include "hash-ay.h"
 #include "reasm-ay.h"
 
@@ -64,8 +66,11 @@ void *make_reasm_pile() {
    
    rp->chs = halloc(4, 16);
    rp->maxfrags = 32;
-   rp->mtu = 20000;
-   rp->ftu = 2000;
+   rp->mtu = 500* 8;
+   rp->ftu = 250* 8;
+
+   rp->mtu = 50* 8;
+   rp->ftu = 25* 8;
 
    return d;
 }
@@ -73,7 +78,7 @@ void *make_reasm_pile() {
 
 void hole_set(reasm_chunk_t *chk, uint16_t offs, uint16_t holelen, uint16_t datalen) {
   dbuf_t *d = chk->d;
-  assert(holelen & 7 == 0);
+  assert((holelen & 7) == 0);
   assert(holelen > 0);
   *du16(d, offs) = holelen;
   *du16d(d, offs) = datalen;
@@ -120,16 +125,22 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
                         char *data, uint16_t len, uint16_t offs, int more) {
   dbuf_t *d = chk->d;
 
-  if (!more) chk->esize = offs+len;
+  if (!more) { 
+    debug(DBG_REASM, 20, "Set desired length to %d = %d + %d\n", chk->esize, offs, len);
+    chk->esize = offs+len;
+  }
+  debug(DBG_REASM, 20, "Offs: %d, len: %d, chk->esize: %d, chk->hole: %d", 
+        offs, len, chk->esize, chk->hole);
+  debug_dump(DBG_REASM, 100, d->buf, d->size);
   if (chk->esize == chk->hole) {
     /*
      * reassembly complete. Delete chunk, and return the dbuf.
      * do not unlock since we should have locked it anyway
      */
+    d->dsize = chk->esize;
     hdelete(rp->chs, &chk->xid, sizeof(chk->xid), NULL, NULL, NULL);
     /* this is called from callback destructor => free(chk); */
     return d;
-  
   }
   return NULL;
 }
@@ -141,6 +152,9 @@ dbuf_t *check_reasm_done(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
 
 dbuf_t *hole_fill_exact(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t hoffs1, uint16_t hoffs0,
                         char *data, uint16_t len, uint16_t offs, int more) {
+
+  debug(DBG_REASM, 20, "hole_fill_exact hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
+        hoffs1, hoffs0, data, len, offs, more);
 
   if(chk->hole == hoffs1) {
     /* was a first hole - just update the pointer in the chunk */
@@ -161,6 +175,9 @@ dbuf_t *hole_fill_exact(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t ho
 dbuf_t *hole_fill_begin(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t hoffs1, uint16_t hoffs0,
                         char *data, uint16_t len, uint16_t offs, int more) {
 
+  debug(DBG_REASM, 20, "hole_fill_begin hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
+        hoffs1, hoffs0, data, len, offs, more);
+
   /* prepare the new head of hole - store the shorter length at new start */
   *du16(chk->d, hoffs1 + len) = *du16(chk->d, hoffs1) - len;
 
@@ -180,6 +197,9 @@ dbuf_t *hole_fill_begin(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t ho
 
 dbuf_t *hole_fill_end(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t hoffs1, uint16_t hoffs0,
                         char *data, uint16_t len, uint16_t offs, int more) {
+
+  debug(DBG_REASM, 20, "hole_fill_end hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
+        hoffs1, hoffs0, data, len, offs, more);
   /* 
    * We're copying at the end of hole so we increase 
    * the data portion of it, decrease the empty len, and move 
@@ -202,6 +222,10 @@ dbuf_t *hole_fill_middle(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint16_t h
                         char *data, uint16_t len, uint16_t offs, int more) {
 
   uint16_t ohlen = *du16(chk->d, hoffs1);
+
+  debug(DBG_REASM, 20, "hole_fill_middle hoffs1: %d, hoffs0: %d, data: %s, len: %d, offs: %d, more: %d", 
+        hoffs1, hoffs0, data, len, offs, more);
+
   *du16(chk->d, hoffs1) = offs - hoffs1;
   *du16d(chk->d, hoffs1) = len;
   /* make a new hole */
@@ -226,9 +250,19 @@ dbuf_t *dperform_reasm(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint32_t xid
 
   /* Check that the suitable hole exists and the fragment fits into it */
   
-  if (!hole_find(chk, offs, &hoffs1, &hoffs0)) return NULL;
-  if (!hole_find(chk, offs+len-1, &hoffs2, NULL)) return NULL;
-  if (hoffs1 != hoffs2) return NULL; 
+  if (!hole_find(chk, offs, &hoffs1, &hoffs0)) { 
+    debug(DBG_REASM, 10, "No hole for start %d in chunk %lu", offs, xid);
+    return NULL;
+  }
+  if (!hole_find(chk, offs+len-1, &hoffs2, NULL)) {
+    debug(DBG_REASM, 10, "No hole for end (%d+%d=%d) in chunk %lu", offs, len, offs+len, xid);
+    return NULL;
+  }
+  if (hoffs1 != hoffs2) {
+    debug(DBG_REASM, 10, "Different holes for (%d+%d) in chunk %lu", offs, len, xid);
+    return NULL; 
+  }
+  debug(DBG_REASM, 10, "Found holes %d for (%d, %d) in chunk %lu", hoffs1, offs, len, xid);
 
   /* Do the reassembly  */
 
@@ -249,15 +283,16 @@ dbuf_t *dperform_reasm(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint32_t xid
    */
   
   if (hoffs1 == offs && *du16(d, hoffs1) == len) 
-    return hole_fill_exact(rp, chk, hoffs1, hoffs0, data, offs, len, more); 
+    return hole_fill_exact(rp, chk, hoffs1, hoffs0, data, len, offs, more); 
   if (hoffs1 == offs && *du16(d, hoffs1)  > len) 
-    return hole_fill_begin(rp, chk, hoffs1, hoffs0, data, offs, len, more); 
+    return hole_fill_begin(rp, chk, hoffs1, hoffs0, data, len, offs, more); 
   if (hoffs1 < offs && hoffs1 + *du16(d, hoffs1)  == offs + len) 
-    return hole_fill_end(rp, chk, hoffs1, hoffs0, data, offs, len, more); 
+    return hole_fill_end(rp, chk, hoffs1, hoffs0, data, len, offs, more); 
   if (hoffs1 < offs && hoffs1 + *du16(d, hoffs1)  > offs + len) 
-    return hole_fill_middle(rp, chk, hoffs1, hoffs0, data, offs, len, more); 
+    return hole_fill_middle(rp, chk, hoffs1, hoffs0, data, len, offs, more); 
   
   /* we do not reach here */
+  assert(0);
 
   return NULL;
 }
@@ -269,29 +304,41 @@ int chk_destructor(void *key, int key_len, void *data_old, void *data_new) {
 
 
 dbuf_t *dtry_reasm(void *pile, uint32_t xid, char *data, uint16_t len, uint16_t offs, int more) {
-  reasm_pile_struct_t *rp = pile;
+  reasm_pile_struct_t *rp = (void *)(((dbuf_t *)pile)->buf);
   reasm_chunk_t *chk;
 
-  if(offs + len > rp->mtu) return NULL;
+  if(offs + len > rp->mtu) {
+    debug(DBG_REASM, 10, "Offset + length (%d + %d) of fragment > MTU (%d), discard", offs, len, rp->mtu); 
+    return NULL;
+  }
   
   chk = hfind(rp->chs, &xid, sizeof(xid));
   if (!chk) {
+    debug(DBG_REASM, 10, "Reasm chunk %lu not found, creating", xid); 
     chk = malloc(sizeof(reasm_chunk_t));
     chk->xid = xid;
     chk->maxfrags = rp->maxfrags;
     chk->hole = 0;
     chk->esize = rp->ftu;
     chk->d = dalloc(chk->esize);
+    memset(chk->d->buf, 0xaa, chk->d->size);
     hole_set(chk, 0, chk->esize, 0);
     hinsert(rp->chs, &xid, sizeof(xid), chk, chk_destructor, NULL, NULL, NULL); 
+    debug(DBG_REASM, 100, "Fresh chunk data:"); 
+    debug_dump(DBG_REASM, 100, chk->d->buf, chk->d->size);
+  } else {
+    debug(DBG_REASM, 10, "Reasm chunk %lu found", xid); 
   }
 
   if(offs + len > chk->d->size) {
+    debug(DBG_REASM, 10, "Reasm chunk %lu overflow - %d + %d > %d", xid, offs, len, chk->d->size); 
     /* We already checked the MTU overflow above, so we can safely reallocate here */
     int oldsize = chk->d->size;
     dgrow(chk->d, rp->mtu - chk->d->size);
     hole_grow(chk, oldsize-1, chk->d->size);
     chk->esize = chk->d->size;
+    debug(DBG_REASM, 100, "Fresh chunk data after growth to MTU:"); 
+    debug_dump(DBG_REASM, 100, chk->d->buf, chk->d->size);
   }
 
   return dperform_reasm(rp, chk, xid, data, len, offs, more);

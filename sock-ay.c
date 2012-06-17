@@ -1171,6 +1171,7 @@ int sock_one_cycle(int timeout, void *u_ptr) {
     int nfdscheck = nfds;
 
     debug(DBG_GLOBAL, 125, "poll(%d)", nfds);
+    debug_redraw_if_needed();
     nsocks = poll(ufds, nfdscheck, timeout);
     if (nsocks == -1) {
       struct rlimit rlim;

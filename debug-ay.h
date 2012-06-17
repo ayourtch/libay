@@ -37,6 +37,7 @@ enum {
   DBG_CONSOLE,
   DBG_SLIST,
   DBG_MEMORY,
+  DBG_REASM,
 };
 
 /**
@@ -47,6 +48,10 @@ typedef struct {
   void *addresses[10];
 } backtrace_t;
 
+typedef void debug_redraw_cb_t(int idlecall);
+
+void debug_will_need_redraw(debug_redraw_cb_t *cb);
+void debug_redraw_if_needed();
 
 
 int debug(int type, int level, const char *fmt, ...);
