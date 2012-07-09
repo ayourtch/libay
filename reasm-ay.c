@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <time.h>
 #include <sys/queue.h>
+#include <inttypes.h>
 #include "dbuf-ay.h"
 #include "debug-ay.h"
 #include "hash-ay.h"
@@ -319,18 +320,18 @@ dbuf_t *dperform_reasm(reasm_pile_struct_t *rp, reasm_chunk_t *chk, uint32_t xid
   /* Check that the suitable hole exists and the fragment fits into it */
   
   if (!hole_find(chk, offs, &hoffs1, &hoffs0)) { 
-    debug(DBG_REASM, 10, "No hole for start %d in chunk %lu", offs, xid);
+    debug(DBG_REASM, 10, "No hole for start %d in chunk %"PRIu32"", offs, xid);
     return NULL;
   }
   if (!hole_find(chk, offs+len-1, &hoffs2, NULL)) {
-    debug(DBG_REASM, 10, "No hole for end (%d+%d=%d) in chunk %lu", offs, len, offs+len, xid);
+    debug(DBG_REASM, 10, "No hole for end (%d+%d=%d) in chunk %"PRIu32"", offs, len, offs+len, xid);
     return NULL;
   }
   if (hoffs1 != hoffs2) {
-    debug(DBG_REASM, 10, "Different holes for (%d+%d) in chunk %lu", offs, len, xid);
+    debug(DBG_REASM, 10, "Different holes for (%d+%d) in chunk %"PRIu32"", offs, len, xid);
     return NULL; 
   }
-  debug(DBG_REASM, 10, "Found holes %d for (%d, %d) in chunk %lu", hoffs1, offs, len, xid);
+  debug(DBG_REASM, 10, "Found holes %d for (%d, %d) in chunk %"PRIu32"", hoffs1, offs, len, xid);
   if (!more && ((chk->esize < chk->d->size) || 
                 ( (chk->d->dsize > 0) && (chk->d->dsize < chk->esize) && (offs < chk->d->dsize)) 
                ) ) { 
