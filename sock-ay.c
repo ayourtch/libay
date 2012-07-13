@@ -651,7 +651,7 @@ create_tcp_socket()
   int s;
   long yes = 1;
 
-  s = socket(PF_INET, SOCK_STREAM, 6);
+  s = socket(PF_INET6, SOCK_STREAM, 0);
   notminus(s, "could not create socket");
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
   return s;
@@ -663,7 +663,7 @@ create_udp_socket()
   int s;
   long yes = 1;
 
-  s = socket(PF_INET, SOCK_DGRAM, 0);
+  s = socket(PF_INET6, SOCK_DGRAM, 0);
   notminus(s, "could not create socket");
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
   return s;
@@ -684,17 +684,19 @@ create_udp_socket()
 int
 bind_socket_listener_specific(int newidx, int s, char *addr, int port)
 {
-  struct sockaddr_in sin;
+  struct sockaddr_in6 sin6;
   int idx = newidx;
+  char addrbuf[INET6_ADDRSTRLEN];
 
-  bzero(&sin, sizeof(sin));
-  sin.sin_port = htons(port);
-  sin.sin_family = AF_INET;
+  bzero(&sin6, sizeof(sin6));
+  sin6.sin6_port = htons(port);
+  sin6.sin6_family = AF_INET6;
+
   if(addr != NULL) {
-    inet_aton(addr, &sin.sin_addr);
+    inet_pton(AF_INET6, addr, &sin6.sin6_addr);
   }
 
-  notminus(bind(s, (struct sockaddr *) &sin, sizeof(sin)), "bind failed");
+  notminus(bind(s, (struct sockaddr *) &sin6, sizeof(sin6)), "bind failed");
 
   init_idx(idx);
   cdata[idx].listener = 1;
@@ -704,14 +706,14 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
   ufds[idx].events = POLLIN;
   debug(DBG_GLOBAL, 1,
         "Index %d - starting listening on port %d for address %s!", idx,
-        port, inet_ntoa(sin.sin_addr));
+        port, inet_ntop(AF_INET6, &sin6.sin6_addr, addrbuf, sizeof(sin6)));
   return idx;
 }
 
 int
 bind_udp_listener_specific(char *addr, int port, char *remote)
 {
-  struct sockaddr_in sin;
+  struct sockaddr_in6 sin6;
   struct hostent *hp;
   int s = create_udp_socket();
   int idx =
@@ -722,20 +724,18 @@ bind_udp_listener_specific(char *addr, int port, char *remote)
 
   cdata[idx].is_udp = 1;
 
-  bzero(&sin, sizeof(sin));
-  sin.sin_port = 0;             //7777; // htons(port);
-  sin.sin_family = AF_INET;
-  //inet_aton(remote , &sin.sin_addr);
+  bzero(&sin6, sizeof(sin6));
+  sin6.sin6_port = 0;             //7777; // htons(port);
+  sin6.sin6_family = AF_INET;
 
   fcntl(s, F_SETFL, O_NONBLOCK);
 
   debug(DBG_GLOBAL, 1, "UDP listener on %s:%d started with index %d!",
         addr, port, idx);
   if(remote != NULL) {
-    hp = gethostbyname(remote);
-    sin.sin_addr.s_addr = ((struct in_addr *) (hp->h_addr))->s_addr;
+    inet_pton(AF_INET6, remote, &sin6.sin6_addr);
     notminus(connect
-             (s, (struct sockaddr *) &sin, sizeof(struct sockaddr_in)),
+             (s, (struct sockaddr *) &sin6, sizeof(sin6)),
              "Connect of UDP");
   }
   // even though it is UDP, we assume it is "connected"
