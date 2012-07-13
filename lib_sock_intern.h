@@ -52,7 +52,7 @@ typedef struct {
   int do_ssl;                   /* =1 if we need to negotiate the SSL still (only valid for TCP) */
   int is_ssl;                   /* =1 if this is ssl-protected socket with a finished handshake, else 0. only valid for TCP */
   SSL *ssl;                     /* the SSL thing to write to/read from, should be valid if is_ssl is set */
-  struct sockaddr_in remote;    /* used for udp sockets - to store rem ip / port */
+  struct sockaddr_in6 remote;    /* used for udp sockets - to store rem ip / port */
   int apptype;                  /* application type */
   dbuf_t *appdata;              /* per-session application-specific data */
   void *private;		/* private type-specific pointer */

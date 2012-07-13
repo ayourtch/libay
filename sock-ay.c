@@ -74,8 +74,6 @@ print_cdata(int i, int debuglevel)
   debug(DBG_GLOBAL, debuglevel, "  do_ssl: %d", cdata[i].do_ssl);
   debug(DBG_GLOBAL, debuglevel, "  is_ssl: %d", cdata[i].is_ssl);
   debug(DBG_GLOBAL, debuglevel, "  ssl: %x", cdata[i].ssl);
-  debug(DBG_GLOBAL, debuglevel, "  remote: %s:%d",
-        inet_ntoa(cdata[i].remote.sin_addr), cdata[i].remote.sin_port);
   debug(DBG_GLOBAL, debuglevel, "  apptype: %d", cdata[i].apptype);
   debug(DBG_GLOBAL, debuglevel, "  appdata: %x", cdata[i].appdata);
   debug(DBG_GLOBAL, debuglevel, "  l7state: %d", cdata[i].l7state);
@@ -96,10 +94,9 @@ void
 pkt_dprint_cdata(int i, dbuf_t * d)
 {
   dxprintf(d,
-          "  %d:%s  do_ssl:%d,ssl:%d,listen:%d,lport:%-5d remote:%16s:%-5d fd:%-5d revents:%x\n",
+          "  %d:%s  do_ssl:%d,ssl:%d,listen:%d,lport:%-5d fd:%-5d revents:%x\n",
           i, cdata[i].is_udp ? "udp" : "tcp", cdata[i].do_ssl,
           cdata[i].is_ssl, cdata[i].listener, cdata[i].listen_port,
-          inet_ntoa(cdata[i].remote.sin_addr), cdata[i].remote.sin_port,
           ufds[i].fd, ufds[i].revents);
 }
 
@@ -166,23 +163,29 @@ cdata_get_handlers(int idx)
 
 int 
 cdata_get_remote4(int idx, uint32_t *addr, uint16_t *port) {
+  debug(DBG_GLOBAL, -1, "Fixme cdata_get_remote4");
+#ifdef FIXME
   if (addr) {
     *addr = *((uint32_t *) (&cdata[idx].remote.sin_addr)); 
   }
   if (port) {
     *port = (uint16_t) cdata[idx].remote.sin_port;
   }
+#endif
   return 1;
 }
 
 int 
 cdata_set_remote4(int idx, uint32_t *addr, uint16_t *port) {
+  debug(DBG_GLOBAL, -1, "Fixme cdata_get_remote4");
+#ifdef FIXME
   if (addr) {
     *((uint32_t *) (&cdata[idx].remote.sin_addr)) = *addr; 
   }
   if (port) {
     cdata[idx].remote.sin_port = *port;
   }
+#endif
   return 1;
 }
 
@@ -1033,6 +1036,7 @@ sock_send_data(int i, dbuf_t * d)
 	       d->dsize - cdata[i].written,
 	       0, (struct sockaddr *) &cdata[i].remote,
 	       sizeof(cdata[i].remote));
+	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
     } else {
       if(cdata[i].is_ssl) {
 	nwrote =
