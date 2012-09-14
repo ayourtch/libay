@@ -690,12 +690,17 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
   struct sockaddr_in6 sin6;
   int idx = newidx;
   char addrbuf[INET6_ADDRSTRLEN];
+  int on = 1;
 
   bzero(&sin6, sizeof(sin6));
   sin6.sin6_port = htons(port);
   sin6.sin6_family = AF_INET6;
 
   if(addr != NULL) {
+    if (strcmp(addr, "*") == 0) {
+      notminus(setsockopt(s, SOL_IP, IP_TRANSPARENT, &on, sizeof on), "setsockopt IP_TRANSPARENT");
+      addr = "::";
+    } 
     inet_pton(AF_INET6, addr, &sin6.sin6_addr);
   }
 
