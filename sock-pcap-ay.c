@@ -76,7 +76,7 @@ int attach_pcap(char *dev)
   if (pcap) {
     int idx = sock_make_new(pcap_fileno(pcap), pcap);
     pcap_setnonblock(pcap, 1, errbuf);
-    sock_set_hooks(pcap_send, pcap_recv);
+    sock_set_hooks(idx, pcap_send, pcap_recv);
     debug(DBG_GLOBAL, 1, "PCAP on device (%s) added to index %d", dev, idx);
     return idx;
   } else {
