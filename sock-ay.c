@@ -606,7 +606,14 @@ ev_newconn(int idx, int parent, void *u_ptr)
         cdata[idx].connected, cdata[idx].inbound);
 
   if(cdata[parent].handlers.ev_newconn) {
-     cdata[parent].handlers.ev_newconn(idx, parent, u_ptr); 
+    cdata[parent].handlers.ev_newconn(idx, parent, u_ptr); 
+  } else {
+    if (cdata[parent].handlers.ev_read) {
+      cdata[idx].handlers.ev_read = cdata[parent].handlers.ev_read;
+    }
+    if (cdata[parent].handlers.ev_closed) {
+      cdata[idx].handlers.ev_closed = cdata[parent].handlers.ev_closed;
+    }
   }
   if(cdata[idx].do_ssl == 0) {
     if(cdata[idx].handlers.ev_channel_ready) {
