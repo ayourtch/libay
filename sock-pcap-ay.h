@@ -40,8 +40,18 @@
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <netinet/ip6.h>
 
 #include "dbuf-ay.h"
+
+typedef struct pcap_socket_info_t {
+  char *mac;
+  char mac_buf[6];
+  struct in6_addr *v6addr;
+  struct in6_addr v6addr_buf;
+} pcap_socket_info_t;
+
+pcap_socket_info_t *get_pcap_socket_info(int idx);
 
 int attach_pcap(char *dev);
 

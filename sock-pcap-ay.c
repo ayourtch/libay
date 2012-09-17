@@ -32,16 +32,21 @@
 #include <unistd.h>
 #include <poll.h>
 #include <pcap/pcap.h>
+#include <netpacket/packet.h>
+#include <net/ethernet.h>
+#include <netinet/ip6.h>
 
 #include "lib_sock_intern.h"
 #include "dbuf-ay.h"
 #include "debug-ay.h"
 #include "lists-ay.h"
 #include "os-ay.h"
+#include "sock-pcap-ay.h"
 /*
 #include "timers-ay.h"
 */
 
+char *pcap_usig = "PCAP socket info";
 
 int 
 pcap_recv(int idx, dbuf_t *d, void *private) 
@@ -66,6 +71,56 @@ pcap_send(int idx, dbuf_t *d, void *private)
 
 }
 
+/* Allocate structure to stuff various address info */
+int pcap_alloc_info(int idx, char *dev) {
+
+  static char errbuf[PCAP_ERRBUF_SIZE];
+  pcap_if_t *all;
+  pcap_if_t *pdev;
+  pcap_addr_t *addr;
+  pcap_socket_info_t *psi;
+  int found_mac = 0;
+  int found_v6 = 0;
+
+  if (pcap_findalldevs(&all, errbuf) != 0) {
+    return 0;
+  }
+  dbuf_t *d = dalloc(sizeof(pcap_socket_info_t));
+  if (!d) {
+    pcap_freealldevs(all);
+    return 0;
+  }
+  dsetusig(d, pcap_usig);
+  psi = (pcap_socket_info_t *)d->buf;
+  memset(psi, 0, sizeof(*psi));
+
+  for(pdev = all; pdev != NULL; pdev = pdev->next) {
+    if (strcmp(dev, pdev->name) == 0) {
+      for(addr = pdev->addresses; addr != NULL; addr = addr->next) {
+	if (addr->addr->sa_family == AF_PACKET) {
+	  struct sockaddr_ll *s = (void *) (addr->addr);
+	  if (s->sll_halen == 6) {
+	    memcpy(psi->mac_buf, s->sll_addr, 6);
+	    psi->mac = psi->mac_buf;
+	    found_mac = 1;
+	  }
+	} else if (addr->addr->sa_family == AF_INET6) {
+	  struct sockaddr_in6 *s = (void *) (addr->addr);
+	  if (IN6_IS_ADDR_LINKLOCAL(&s->sin6_addr)) {
+	    psi->v6addr_buf = s->sin6_addr;
+	    psi->v6addr = &psi->v6addr_buf;
+	    found_v6 = 1;
+	  }
+	}
+      }
+    }
+  }
+  pcap_freealldevs(all);
+  cdata_set_appdata_dbuf(idx, d);
+  return (found_mac && found_v6);
+}
+
+
 int attach_pcap(char *dev)
 {
   char errbuf[PCAP_ERRBUF_SIZE] = "";
@@ -77,11 +132,21 @@ int attach_pcap(char *dev)
     int idx = sock_make_new(pcap_fileno(pcap), pcap);
     pcap_setnonblock(pcap, 1, errbuf);
     sock_set_hooks(idx, pcap_send, pcap_recv);
-    debug(DBG_GLOBAL, 1, "PCAP on device (%s) added to index %d", dev, idx);
+    int res = pcap_alloc_info(idx, dev);
+    debug(DBG_GLOBAL, 1, "PCAP%s on device (%s) added to index %d", (res ? "(with info)" : ""), dev, idx);
     return idx;
   } else {
     debug(DBG_GLOBAL, 0, "Could not get PCAP on %s: %s", dev, errbuf);
     return -1;
+  }
+}
+
+pcap_socket_info_t *get_pcap_socket_info(int idx) {
+  dbuf_t *d = cdata_get_appdata_dbuf(idx, pcap_usig);
+  if (d) {
+    return (pcap_socket_info_t *) d->buf;
+  } else {
+    return NULL;
   }
 }
 
