@@ -131,6 +131,7 @@ void h_do_delete(htable_t *ht, hash_entry_t *hen, hcallback_func_t *do_delete)
   }
   LIST_REMOVE(hen, entries);
   LIST_REMOVE(hen, all_entries);
+  ht->total_items--;
   if(hen->destructor) {
     hen->destructor(hen->key, hen->key_len, hen->data, NULL);
   }
@@ -227,6 +228,7 @@ hinsert(htable_t *ht, void *key, int key_len, void *data, hcallback_func_t *dest
   // to mess with the iterators
   LIST_INSERT_HEAD(&ht->all_entries, hen, all_entries);
   // successfully inserted 
+  ht->total_items++;
   return data_old;
 }
 
@@ -306,6 +308,11 @@ void *hdeletes(htable_t *ht, char *key, hcallback_func_t *can_delete, hcallback_
 int hdeletess(htable_t *ht, char *key, hcallback_func_t *can_delete, hcallback_func_t *do_delete, int *did_delete)
 {
   return (NULL != hdelete(ht, key, strlen(key)+1, can_delete, do_delete, did_delete));
+}
+
+
+int hgetcount(htable_t *ht) {
+  return ht->total_items;
 }
 
 void h_lock_hen_iter(htable_t *ht, hash_entry_t *hen)

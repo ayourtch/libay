@@ -61,6 +61,7 @@ typedef struct htable_t {
   hash_entry_head_t all_entries;
   int index_bits;
   int default_key_len;
+  int total_items;
 } htable_t;
 
 /* a self-sufficient hashtable iterator */
@@ -92,6 +93,8 @@ void *hdeletes(htable_t *ht, char *key, hcallback_func_t *can_delete,
 
 int hdeletess(htable_t *ht, char *key, hcallback_func_t *can_delete, 
              hcallback_func_t *do_delete, int *did_delete);
+
+int hgetcount(htable_t *ht);
 
 
 htable_iter_t *hiter_first(htable_t *ht);
