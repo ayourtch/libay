@@ -206,6 +206,8 @@ cdata_check_remote4(int idx, uint32_t addr, uint16_t port) {
  * @{
  */
 
+#ifdef WITH_SSL
+
 SSL_METHOD *ssl_client_meth;
 SSL_METHOD *ssl_server_meth;
 SSL_CTX *ssl_client_ctx;
@@ -360,6 +362,8 @@ ssl_negotiate(int idx, int is_server)
   return 1;
 }
 
+#endif
+
 /*@}*/
 
 
@@ -428,11 +432,14 @@ ev_closed(int idx, void *u_ptr)
 {
   dbuf_t *d;
 
+#ifdef WITH_SSL
   if(cdata[idx].is_ssl) {
     SSL_shutdown(cdata[idx].ssl);
     SSL_free(cdata[idx].ssl);
     cdata[idx].ssl = NULL;
   }
+#endif
+
   while((d = rpop(&cdata[idx].xmit_list))) {
     dunlock(d);
   }
@@ -912,6 +919,8 @@ sock_unconnected_pollinout(int i, void *u_ptr)
   }
 }
 
+#ifdef WITH_SSL
+
 void
 sock_ssl_check_error(int i, int ret, void *u_ptr)
 {
@@ -943,6 +952,7 @@ sock_ssl_check_error(int i, int ret, void *u_ptr)
   }
 }
 
+
 /**
  * POLLIN event for the SSL socket that is in the process of negotiation
  *
@@ -964,6 +974,8 @@ sock_ssl_pollinout(int i, void *u_ptr)
 
 }
 
+#endif
+
 int
 sock_receive_data(int i, dbuf_t * d)
 {
@@ -976,11 +988,15 @@ sock_receive_data(int i, dbuf_t * d)
 	recvfrom(ufds[i].fd, d->buf, d->size, 0,
 		 (struct sockaddr *) &cdata[i].remote, &remote_len);
     } else {
+#ifdef WITH_SSL	
       if(cdata[i].is_ssl) {
 	d->dsize = SSL_read(cdata[i].ssl, d->buf, d->size);
       } else {
+#endif
 	d->dsize = read(ufds[i].fd, d->buf, d->size);
+#ifdef WITH_SSL
       }
+#endif
     }
   }
   cdata[i].rx_count++;
@@ -1000,9 +1016,13 @@ sock_receive_data(int i, dbuf_t * d)
 void
 sock_connected_pollin(int i, void *u_ptr)
 {
+#ifdef WITH_SSL
   if(cdata[i].do_ssl) {
     sock_ssl_pollinout(i, u_ptr);
-  } else {
+    return;
+  } 
+#endif
+  if (1) {
     dbuf_t *d = NULL;
 
     debug(DBG_GLOBAL, 11, "..on a Xconnected socket (idx %d)", i);
@@ -1049,15 +1069,17 @@ sock_send_data(int i, dbuf_t * d)
 	       sizeof(cdata[i].remote));
 	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
     } else {
+#ifdef WITH_SSL
       if(cdata[i].is_ssl) {
 	nwrote =
 	  SSL_write(cdata[i].ssl,
 		    &d->buf[cdata[i].written], d->dsize - cdata[i].written);
-      } else {
-	nwrote =
+	return nwrote;
+      } 
+#endif
+      nwrote =
 	  write(ufds[i].fd,
 		&d->buf[cdata[i].written], d->dsize - cdata[i].written);
-      }
     }
   }
   return nwrote;
@@ -1091,9 +1113,13 @@ sock_write_data(int i, dbuf_t *d)
 void
 sock_connected_pollout(int i, void *u_ptr)
 {
+#ifdef WITH_SSL
   if(cdata[i].do_ssl) {
     sock_ssl_pollinout(i, u_ptr);
-  } else {
+    return;
+  } 
+#endif
+  if (1) {
     if(cdata[i].xmit_list != NULL) {
       dbuf_t *d = rpeek(&cdata[i].xmit_list);
       int nwrote;
