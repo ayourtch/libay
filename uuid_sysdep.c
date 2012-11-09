@@ -130,13 +130,11 @@ get_random_info(char seed[16])
 {
   MD5_CTX c;
   struct {
-    struct sysinfo s;
     struct timeval t;
     char hostname[257];
   } r;
 
   MD5_Init(&c);
-  sysinfo(&r.s);
   gettimeofday(&r.t, (struct timezone *) 0);
   gethostname(r.hostname, 256);
   MD5_Update(&c, &r, sizeof r);
