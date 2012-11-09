@@ -38,7 +38,9 @@ int main(int argc, char *argv[]) {
   debug(0,0, "Retrieve: %s", hfindss(ht, "key"));
 
   sock = bind_tcp_listener(2323);
+#ifdef WITH_TUNTAP
   tapi = attach_tun_interface(NULL);
+#endif
   // pcap = attach_pcap("wlan2");
   hdl = cdata_get_handlers(pcap);
   // this handler is to cause duplicate packets on the segment
