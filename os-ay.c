@@ -30,8 +30,10 @@
 #include <string.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
+#ifdef WITH_TUNTAP
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#endif
 
 
 #include "os-ay.h"
@@ -124,6 +126,8 @@ time_t get_file_mtime(char *fname)
 
 }
 
+#ifdef WITH_TUNTAP
+
 int tuntap_alloc(char *dev, int kind) 
 {
   struct ifreq ifr;
@@ -156,6 +160,8 @@ int tun_alloc(char *dev)
 {
   return tuntap_alloc(dev, IFF_TUN);
 }
+
+#endif
 
 /*@}*/
 
