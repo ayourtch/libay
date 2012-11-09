@@ -789,6 +789,8 @@ bind_tcp_listener(int port)
   return bind_tcp_listener_specific(NULL, port);
 }
 
+#ifdef WITH_TUNTAP
+
 int attach_tuntap_interface(char *dev, int s) 
 {
   if (s > 0) {
@@ -810,6 +812,8 @@ int attach_tun_interface(char *dev)
 {
   return attach_tuntap_interface(dev, tun_alloc(dev));
 }
+
+#endif
 
 struct termios ti_saved;
 int fd_stdin = 0;
