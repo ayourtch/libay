@@ -32,7 +32,9 @@
 #include <unistd.h>
 #include <poll.h>
 #include <pcap/pcap.h>
+#ifdef LINUX
 #include <netpacket/packet.h>
+#endif
 #include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
@@ -98,6 +100,7 @@ int pcap_alloc_info(int idx, char *dev) {
   for(pdev = all; pdev != NULL; pdev = pdev->next) {
     if (strcmp(dev, pdev->name) == 0) {
       for(addr = pdev->addresses; addr != NULL; addr = addr->next) {
+#ifdef LINUX
 	if (addr->addr->sa_family == AF_PACKET) {
 	  struct sockaddr_ll *s = (void *) (addr->addr);
 	  if (s->sll_halen == 6) {
@@ -105,7 +108,9 @@ int pcap_alloc_info(int idx, char *dev) {
 	    psi->mac = psi->mac_buf;
 	    found_mac = 1;
 	  }
-	} else if (addr->addr->sa_family == AF_INET6) {
+	} 
+#endif
+        if (addr->addr->sa_family == AF_INET6) {
 	  struct sockaddr_in6 *s = (void *) (addr->addr);
 	  if (IN6_IS_ADDR_LINKLOCAL(&s->sin6_addr)) {
 	    psi->v6addr_buf = s->sin6_addr;
