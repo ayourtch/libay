@@ -162,8 +162,8 @@ void reset_timeout(reasm_pile_struct_t *rp, reasm_chunk_t *chk) {
 
 
 void dispose_chk(reasm_pile_struct_t *rp, reasm_chunk_t *chk) {
-  hdelete(rp->chs, &chk->xid, sizeof(chk->xid), NULL, NULL, NULL);
   TAILQ_REMOVE(&rp->lru, chk, entries);
+  hdelete(rp->chs, &chk->xid, sizeof(chk->xid), NULL, NULL, NULL);
   /* this is called from callback destructor => free(chk); */
 }
   
