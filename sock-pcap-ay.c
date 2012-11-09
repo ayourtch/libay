@@ -34,6 +34,7 @@
 #include <pcap/pcap.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
+#include <netinet/in.h>
 #include <netinet/ip6.h>
 
 #include "lib_sock_intern.h"
