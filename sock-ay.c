@@ -711,7 +711,9 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
 
   if(addr != NULL) {
     if (strcmp(addr, "*") == 0) {
+#ifdef WITH_TRANSPARENT_SOCKET
       notminus(setsockopt(s, SOL_IP, IP_TRANSPARENT, &on, sizeof on), "setsockopt IP_TRANSPARENT");
+#endif
       addr = "::";
     } 
     inet_pton(AF_INET6, addr, &sin6.sin6_addr);
