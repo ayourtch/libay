@@ -1,7 +1,5 @@
 LOG-NTFY-0000: Press Ctrl-C to quit
-
 LOG-NTFY-0000: Cmd: 'd 1000'
-
 LOG-NTFY-0000: Cmd: 'r 0 0 1 1111 1 '
 LOG-FRAG-0050: LRU Traversing start, now: 1
 LOG-FRAG-0050: LRU Traversing end
@@ -37,7 +35,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 8 1 3333 2 '
 LOG-FRAG-0050: LRU Traversing start, now: 2
 LOG-FRAG-0050: LRU chunk xid: 0, deadline: 21
@@ -74,7 +71,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 4 0 xxxx 10'
 LOG-FRAG-0050: LRU Traversing start, now: 10
 LOG-FRAG-0050: LRU chunk xid: 0, deadline: 22
@@ -97,7 +93,6 @@ LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ...
 LOG-FRAG-0010: Found holes 4 for (4, 4) in chunk 0
 LOG-FRAG-0010: MF=0 in the middle of the packet, discard (offs: 4, len: 4), esize: 200, dsize: 12
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 12 0 4444 100'
 LOG-FRAG-0050: LRU Traversing start, now: 100
 LOG-FRAG-0050: LRU chunk xid: 0, deadline: 22
@@ -137,7 +132,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 4 1 2222 101'
 LOG-FRAG-0050: LRU Traversing start, now: 101
 LOG-FRAG-0050: LRU chunk xid: 0, deadline: 120
@@ -174,7 +168,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'q'
 
 

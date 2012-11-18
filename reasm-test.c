@@ -15,9 +15,12 @@ char cmdbuf[CMDSZ];
 int cmdlen = 0;
 
 
-void handle_command(char *cmd) {
+int cli_read_ev(int idx, dbuf_t *di, void *p) {
+  int i;
   char *op;
   dbuf_t *d;
+  char *cmd = di->buf;
+  debug(0,0, "Cmd: '%s'", cmd);
   if (NULL == cmd) {
     return;
   }
@@ -57,52 +60,13 @@ void handle_command(char *cmd) {
       debug(0,0, "Reassembly in progress");
     }
   }
-
-}
-
-void debug_redraw_cb(int idlecall) {
-  if (!idlecall) {
-    fprintf(stderr, "> %s", cmdbuf);
-  }
-}
-
-void handle_char(char c) {
-  if (c == 3 ) { 
-    detach_stdin();
-    printf("\n\n\n");
-    exit(1);
-  }
-  if (c == 0x7f) {
-    if(cmdlen>0) {
-      cmdbuf[--cmdlen] = 0;
-      fprintf(stderr, "%c %c", 8, 8);
-    }
-  } else if ((c == '\r') || (c == '\n')) {
-    fprintf(stderr, "\n");
-    debug(0,0, "Cmd: '%s'", cmdbuf);
-    handle_command(cmdbuf);
-    cmdlen = 0;
-    cmdbuf[cmdlen] = 0;
-  } else {
-    fprintf(stderr, "%c", c);
-    cmdbuf[cmdlen++] = c;
-    cmdbuf[cmdlen] = 0;
-  }
-}
-
-int stdi;
-
-int stdin_read_ev(int idx, dbuf_t *d, void *p) {
-  int i;
-  for(i=0; i<d->dsize; i++) {
-    handle_char(d->buf[i]);
-  }
-  return d->dsize;
+  return d->dsize || 1;
 }
 
 int main(int argc, char *argv[]) {
   int sock;
   int timeout;
+  int stdi, cli;
   htable_t *ht;
   int res;
   dbuf_t *d;
@@ -113,9 +77,9 @@ int main(int argc, char *argv[]) {
   pile = make_reasm_pile();
 
   stdi = attach_stdin(1); 
-  hdl = cdata_get_handlers(stdi); 
-  hdl->ev_read = stdin_read_ev;
-  debug_will_need_redraw(debug_redraw_cb);
+  cli = attach_cli(stdi);
+  hdl = cdata_get_handlers(cli); 
+  hdl->ev_read = cli_read_ev;
   debug(0,0, "Press Ctrl-C to quit");
 
 

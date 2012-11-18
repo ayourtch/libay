@@ -1,7 +1,5 @@
 LOG-NTFY-0000: Press Ctrl-C to quit
-
 LOG-NTFY-0000: Cmd: 'd 1000'
-
 LOG-NTFY-0000: Cmd: 'r 0 0 1 1111'
 LOG-FRAG-0010: Reasm chunk 0 not found, creating
 LOG-FRAG-0100: Chunk data (hole: 0, esize: 200):
@@ -35,7 +33,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 8 1 3333'
 LOG-FRAG-0010: Reasm chunk 0 found
 LOG-FRAG-0100: Chunk data (hole: 4, esize: 200):
@@ -69,7 +66,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 4 0 xxxx'
 LOG-FRAG-0010: Reasm chunk 0 found
 LOG-FRAG-0100: Chunk data (hole: 4, esize: 200):
@@ -89,7 +85,6 @@ LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ...
 LOG-FRAG-0010: Found holes 4 for (4, 4) in chunk 0
 LOG-FRAG-0010: MF=0 in the middle of the packet, discard (offs: 4, len: 4), esize: 200, dsize: 12
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 12 0 4444'
 LOG-FRAG-0010: Reasm chunk 0 found
 LOG-FRAG-0100: Chunk data (hole: 4, esize: 200):
@@ -125,7 +120,6 @@ LOG-FRAG-0100: 000000a0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ...
 LOG-FRAG-0100: 000000b0:   AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA AA   ................
 LOG-FRAG-0100: 000000c0:   AA AA AA AA AA AA 00 00                           ........        
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'r 0 4 1 222'
 LOG-FRAG-0010: Reasm chunk 0 found
 LOG-FRAG-0100: Chunk data (hole: 4, esize: 16):
@@ -146,7 +140,6 @@ LOG-FRAG-0010: Found holes 4 for (4, 3) in chunk 0
 LOG-FRAG-0020: hole_fill_begin hoffs1: 4, hoffs0: 64250, data: 222, len: 3, offs: 4, more: 1
 LOG-FRAG-0000: Attempting to hole_fill_begin with too small resulting hole (4 - 3), abort.
 LOG-NTFY-0000: Reassembly in progress
-
 LOG-NTFY-0000: Cmd: 'q'
 
 
