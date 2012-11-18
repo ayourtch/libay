@@ -1,1 +1,2 @@
+fix the buffer overflow with the sock-cli and sock-line
 fix the leak with CLI if the underlying transport closes
