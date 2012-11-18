@@ -54,7 +54,7 @@ static int debuglevels[65536];
 static int debuglevel = 0;
 
 int
-set_debug_level(int type, int level)
+set_debug_level(debug_type_t type, int level)
 {
   int ret;
 
@@ -76,7 +76,7 @@ get_debug_level()
 
 
 int
-is_debug_on(int type, int level)
+is_debug_on(debug_type_t type, int level)
 {
   if((type < 65536 && debuglevels[type] >= level)
      || (type >= 65536 && debuglevel >= level)) {
@@ -113,7 +113,7 @@ void debug_redraw_if_needed() {
  * @see debug_dump
  */
 int
-debug(int type, int level, const char *fmt, ...)
+debug(debug_type_t type, int level, const char *fmt, ...)
 {
   va_list ap;
   int result = 0;
@@ -165,7 +165,7 @@ debug(int type, int level, const char *fmt, ...)
  */
 
 int
-debug_dump(int type, int level, void *addr, int len)
+debug_dump(debug_type_t type, int level, void *addr, int len)
 {
   char tohex[] = "0123456789ABCDEF";
   int i = 0;
@@ -273,7 +273,7 @@ char *get_symbol_name(void *fptr)
  * Borrowed from http://www.gnu.org/software/libtool/manual/libc/Backtraces.html 
  */
 void
-print_backtrace_t(int debugtype, int debuglevel, backtrace_t * bt)
+print_backtrace_t(debug_type_t debugtype, int debuglevel, backtrace_t * bt)
 {
   char **strings;
   size_t i;
@@ -286,7 +286,7 @@ print_backtrace_t(int debugtype, int debuglevel, backtrace_t * bt)
 }
 
 void
-print_backtrace_t_hex(int debugtype, int debuglevel, backtrace_t * bt)
+print_backtrace_t_hex(debug_type_t debugtype, int debuglevel, backtrace_t * bt)
 {
   int i;
 

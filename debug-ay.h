@@ -28,15 +28,15 @@
 
 #define soft_assert(x) { if (!(x)) { debug(DBG_GLOBAL, 1, "Soft assert failed at %s:%d: %s", __FILE__, __LINE__, __STRING(x)); } }
 
+typedef int debug_type_t;
 
 enum {
-  DBG_GLOBAL_DEBUG_LEVEL = -1,
   DBG_GLOBAL = 1000,
-  DBG_SSL,
+  x_DBG_SSL,
   DBG_TIMERS,
-  DBG_CONSOLE,
-  DBG_SLIST,
-  DBG_MEMORY,
+  x_DBG_CONSOLE,
+  x_DBG_SLIST,
+  x_DBG_MEMORY,
   DBG_REASM,
 };
 
@@ -54,14 +54,14 @@ void debug_will_need_redraw(debug_redraw_cb_t *cb);
 void debug_redraw_if_needed();
 
 
-int debug(int type, int level, const char *fmt, ...);
-int set_debug_level(int type, int level);
+int debug(debug_type_t type, int level, const char *fmt, ...);
+int set_debug_level(debug_type_t type, int level);
 int get_debug_level();
-int is_debug_on(int type, int level);
-int debug_dump(int type, int level, void *addr, int len);
+int is_debug_on(debug_type_t type, int level);
+int debug_dump(debug_type_t type, int level, void *addr, int len);
 char *get_symbol_name(void *fptr);
 void print_backtrace(void);
-void print_backtrace_t(int debugtype, int debuglevel, backtrace_t * bt);
+void print_backtrace_t(debug_type_t debugtype, int debuglevel, backtrace_t * bt);
 void get_backtrace(backtrace_t * bt);
 void notminus(int x, char *msg);
 
