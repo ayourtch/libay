@@ -36,7 +36,7 @@ int cli_read_ev(int idx, dbuf_t *di, void *p) {
   if (0 == strcmp(op, "d")) {
     set_debug_level(DBG_REASM, atoi(strtok(NULL, " ")));
   }
-  if (0 == strcmp(op, "q")) {
+  if (0 == strcmp(op, "q") || 0 == strcmp(op, "\x03")) {
     detach_stdin();
     printf("\n\n\n");
     exit(1);
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
   dbuf_t *d;
   sock_handlers_t *hdl;
 
-  // set_debug_level(DBG_GLOBAL, 1000);
+  //set_debug_level(DBG_GLOBAL, 1000);
 
   pile = make_reasm_pile();
 

@@ -69,10 +69,14 @@ int cli_transport_read_ev(int idx, dbuf_t *d, void *p) {
         dappendfill(dout, ' ', 1);
         dappendfill(dout, 8, 1);
       }
-    } else if ((c == '\r') || (c == '\n')) {
+    } else if ((c == '\r') || (c == '\n') || (c == '\x03')) {
       dappendfill(dout, '\n', 1);
       sock_send_data(idx, dout);
       dout = NULL;
+      if (c == '\x03') {
+        cli->cmd->buf[cli->cmd->dsize++] = c;
+        cli->cmd->buf[cli->cmd->dsize] = 0;
+      }
       ret = ev_read(cli->upstream_idx, cli->cmd, p);
       dunlock(cli->cmd);
       cli->cmd = dalloc(LINE_SIZE);
