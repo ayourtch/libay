@@ -39,6 +39,9 @@
 #include "debug-ay.h"
 #include "dbuf-ay.h"
 
+struct debug_type DBG_MEMORY_S = { "ssl", "MEMD", 0, &DBG_GLOBAL_S };
+debug_type_t DBG_MEMORY = &DBG_MEMORY_S;
+
 /**
  * @defgroup dbuf dbuf - simple data buffer management
  */
@@ -46,7 +49,7 @@
 /*@{*/
 
 void
-print_dbuf(int logtype, int loglevel, dbuf_t * d)
+print_dbuf(debug_type_t logtype, int loglevel, dbuf_t * d)
 {
   if(is_debug_on(logtype, loglevel)) {
     debug(logtype, loglevel, "dbuf: %x", d);

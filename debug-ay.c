@@ -35,6 +35,18 @@
 #include "debug-ay.h"
 
 
+struct debug_type DBG_ALL_S = { "notify", "NTFY", 0, NULL };
+
+debug_type_t DBG_ALL = &DBG_ALL_S;
+
+struct debug_type DBG_GLOBAL_S = { "global", "GLBL", 0, &DBG_ALL_S };
+debug_type_t DBG_GLOBAL = &DBG_GLOBAL_S;
+
+//struct debug_type DBG_SSL_S = { "ssl", "SSLD", 0, &DBG_MEMORY_S };
+//debug_type_t DBG_SSL = &DBG_SSL_S;
+
+
+
 
 /**
  * @defgroup debug Debugging facilities
@@ -44,46 +56,19 @@
     @{ 
   */
 
-/** an array for storing which debug levels are currently active */
-static int debuglevels[65536];
-
-/** 
- * the "global" debug level for the debug types 
- * that are not within the array 
- */
-static int debuglevel = 0;
-
 int
 set_debug_level(debug_type_t type, int level)
 {
   int ret;
-
-  if(type >= 0) {
-    ret = debuglevels[type];
-    debuglevels[type] = level;
-  } else {
-    ret = debuglevel;
-    debuglevel = level;
-  }
+  ret = type->level;
+  type->level = level;
   return ret;
 }
 
 int
-get_debug_level()
-{
-  return debuglevel;
-}
-
-
-int
 is_debug_on(debug_type_t type, int level)
 {
-  if((type < 65536 && debuglevels[type] >= level)
-     || (type >= 65536 && debuglevel >= level)) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return(type->level >= level);
 }
 
 static int debug_needs_erase = 0;
@@ -121,6 +106,10 @@ debug(debug_type_t type, int level, const char *fmt, ...)
   struct timeval tv;
   char date_buf[256];
 
+  if (type == 0) {
+    type = DBG_ALL;
+  }
+
   if(is_debug_on(type, level)) {
 
     gettimeofday(&tv, NULL);
@@ -133,15 +122,15 @@ debug(debug_type_t type, int level, const char *fmt, ...)
     }
 
 
-    fprintf(stderr, "%s.%06d LOG-%04d-%04d: ", date_buf, (int) tv.tv_usec,
-            type, level);
+    fprintf(stderr, "%s.%06d LOG-%4s-%04d: ", date_buf, (int) tv.tv_usec,
+            type->id, level);
     va_start(ap, fmt);
     result = vfprintf(stderr, fmt, ap);
     /* CONSOLEXXX
 
     if(need_console_debugs()) {
-      console_printf("\n%s.%06d LOG-%04d-%04d: ", date_buf, (int) tv.tv_usec,
-                     type, level);
+      console_printf("\n%s.%06d LOG-%4s-%04d: ", date_buf, (int) tv.tv_usec,
+                     type->id, level);
       console_vprintf(fmt, ap);
       console_putstr("\n");
     }

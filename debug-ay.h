@@ -28,17 +28,18 @@
 
 #define soft_assert(x) { if (!(x)) { debug(DBG_GLOBAL, 1, "Soft assert failed at %s:%d: %s", __FILE__, __LINE__, __STRING(x)); } }
 
-typedef int debug_type_t;
+typedef struct debug_type {
+  char *label;
+  char *id;
+  int level;
+  struct debug_type *next;
+} *debug_type_t;
 
-enum {
-  DBG_GLOBAL = 1000,
-  x_DBG_SSL,
-  DBG_TIMERS,
-  x_DBG_CONSOLE,
-  x_DBG_SLIST,
-  x_DBG_MEMORY,
-  DBG_REASM,
-};
+extern struct debug_type DBG_GLOBAL_S;
+extern debug_type_t DBG_GLOBAL;
+extern debug_type_t DBG_SSL;
+extern debug_type_t DBG_TIMERS;
+extern debug_type_t DBG_REASM;
 
 /**
  * structure to store the backtrace

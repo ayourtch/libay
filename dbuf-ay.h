@@ -36,6 +36,9 @@
 #include <string.h>
 #include "debug-ay.h"
 
+extern struct debug_type DBG_MEMORY_S;
+extern debug_type_t DBG_MEMORY;
+
 typedef void (*dbuf_destructor_t) (void *dbuf);
 
 /**
@@ -122,7 +125,7 @@ dbuf_t *dsubstrcpy(dbuf_t *d, int start, int howmany);
 int dconcat(dbuf_t * target, dbuf_t * source);
 int dmemscan(dbuf_t * d, char c, int start);
 void print_dbufs(void);
-void print_dbuf(int logtype, int loglevel, dbuf_t * d);
+void print_dbuf(debug_type_t logtype, int loglevel, dbuf_t * d);
 
 
 int dmemcat(dbuf_t * d, void *str, int total);

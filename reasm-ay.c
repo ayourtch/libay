@@ -33,6 +33,9 @@
 #include "hash-ay.h"
 #include "reasm-ay.h"
 
+struct debug_type DBG_REASM_S = { "reasm", "FRAG", 0, 0 };
+debug_type_t DBG_REASM = &DBG_REASM_S;
+
 /**********************************************
 
 The contents of each chunk being reassembled are stored in dbuf,

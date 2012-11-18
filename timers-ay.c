@@ -33,6 +33,9 @@
 #include "timers-ay.h"
 #include "uuid-ay.h"
 
+struct debug_type DBG_TIMERS_S = { "timers", "TIME", 0, &DBG_MEMORY_S };
+debug_type_t DBG_TIMERS = &DBG_TIMERS_S;
+
 /**
  * @defgroup timermisc Miscellaneous time functions
  */
