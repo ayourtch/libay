@@ -132,7 +132,7 @@ int attach_cli(int iosk)
   hdl->ev_read = cli_transport_read_ev;
 
   // upstream setup
-  idx = sock_make_new(-1, (void*) iosk);
+  idx = sock_make_new(-2, (void*) iosk);
   sock_set_hooks(idx, cli_send, cli_recv);
 
   // link upstream to downstream
