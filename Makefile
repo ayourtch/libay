@@ -2,7 +2,7 @@ all: test reasm-test reasm-tests-run
 CFLAGS=-g
 
 CC=gcc
-OBJS=debug-ay.o lists-ay.o hash-func-ay.o hash-ay.o uuid_sysdep.o uuid-ay.o dbuf-ay.o timers-ay.o os-ay.o sock-ay.o httpd-ay.o reasm-ay.o sock-pcap-ay.o sock-cli.o
+OBJS=debug-ay.o lists-ay.o hash-func-ay.o hash-ay.o uuid_sysdep.o uuid-ay.o dbuf-ay.o timers-ay.o os-ay.o sock-ay.o httpd-ay.o reasm-ay.o sock-pcap-ay.o sock-cli.o sock-line.o
 
 debug-ay.o: debug-ay.c debug-ay.h
 lists-ay.o: lists-ay.c lists-ay.h debug-ay.o
@@ -17,6 +17,7 @@ sock-ay.o: sock-ay.c sock-ay.h os-ay.o
 httpd-ay.o: httpd-ay.c httpd-ay.h sock-ay.o hash-ay.o debug-ay.o lists-ay.o
 reasm-ay.o: reasm-ay.h reasm-ay.c
 sock-cli.o: sock-cli.h sock-cli.c
+sock-line.o: sock-line.h sock-line.c
 
 
 
