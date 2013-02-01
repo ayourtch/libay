@@ -718,6 +718,18 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
     } 
     inet_pton(AF_INET6, addr, &sin6.sin6_addr);
   }
+  if (addr[0] == '!') {
+# ifdef IPV6_V6ONLY
+	int on = 1;
+	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+			(char *)&on, sizeof (on)) < 0) {
+            debug(DBG_GLOBAL, 0, "could not set IPv6 only for a socket from a call!");
+	}
+#else
+    addr++;
+    debug(DBG_GLOBAL, 0, "could not set IPv6 only for a socket!");
+# endif
+  }
 
   notminus(bind(s, (struct sockaddr *) &sin6, sizeof(sin6)), "bind failed");
 
