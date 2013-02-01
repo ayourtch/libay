@@ -53,6 +53,7 @@ typedef struct pcap_socket_info_t {
 
 pcap_socket_info_t *get_pcap_socket_info(int idx);
 
+int attach_pcap_with_filter(char *dev, char *filter);
 int attach_pcap(char *dev);
 
 #endif

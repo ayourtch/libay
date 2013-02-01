@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
 #ifdef WITH_TUNTAP
   tapi = attach_tun_interface(NULL);
 #endif
-  // pcap = attach_pcap("wlan2");
+  pcap = attach_pcap("en0");
   hdl = cdata_get_handlers(pcap);
   // this handler is to cause duplicate packets on the segment
   // hdl->ev_read = pcap_read_ev;

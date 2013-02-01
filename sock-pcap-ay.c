@@ -86,6 +86,7 @@ int pcap_alloc_info(int idx, char *dev) {
   int found_v6 = 0;
 
   if (pcap_findalldevs(&all, errbuf) != 0) {
+    debug(DBG_GLOBAL, 0, "pcap_findalldevs failed");
     return 0;
   }
   dbuf_t *d = dalloc(sizeof(pcap_socket_info_t));
@@ -100,6 +101,7 @@ int pcap_alloc_info(int idx, char *dev) {
   for(pdev = all; pdev != NULL; pdev = pdev->next) {
     if (strcmp(dev, pdev->name) == 0) {
       for(addr = pdev->addresses; addr != NULL; addr = addr->next) {
+        printf("AF: %d\n", addr->addr->sa_family);
 #ifdef LINUX
 	if (addr->addr->sa_family == AF_PACKET) {
 	  struct sockaddr_ll *s = (void *) (addr->addr);
@@ -127,7 +129,7 @@ int pcap_alloc_info(int idx, char *dev) {
 }
 
 
-int attach_pcap(char *dev)
+int attach_pcap_with_filter(char *dev, char *filter)
 {
   char errbuf[PCAP_ERRBUF_SIZE] = "";
   int s;
@@ -135,6 +137,19 @@ int attach_pcap(char *dev)
   pcap_t *pcap = pcap_open_live(dev, CHUNK_SZ, 1, 1, errbuf);
   
   if (pcap) {
+    if (filter) {
+      struct bpf_program bpf;
+      int res = pcap_compile(pcap, &bpf, filter, 0, PCAP_NETMASK_UNKNOWN);
+      if (res) {
+        debug(DBG_GLOBAL, 0, "Could not get compile filter for a PCAP on %s: %s", dev, errbuf);
+        return -1; 
+      }
+      res = pcap_setfilter(pcap, &bpf);
+      if (res) {
+        debug(DBG_GLOBAL, 0, "Could not get attach filter for a PCAP on %s: %s", dev, errbuf);
+        return -1;
+      }
+    }
     int idx = sock_make_new(pcap_fileno(pcap), pcap);
     pcap_setnonblock(pcap, 1, errbuf);
     sock_set_hooks(idx, pcap_send, pcap_recv);
@@ -145,6 +160,10 @@ int attach_pcap(char *dev)
     debug(DBG_GLOBAL, 0, "Could not get PCAP on %s: %s", dev, errbuf);
     return -1;
   }
+}
+
+int attach_pcap(char *dev) {
+  return attach_pcap_with_filter(dev, NULL);
 }
 
 pcap_socket_info_t *get_pcap_socket_info(int idx) {
