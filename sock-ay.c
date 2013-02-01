@@ -718,7 +718,7 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
     } 
     inet_pton(AF_INET6, addr, &sin6.sin6_addr);
   }
-  if (addr[0] == '!') {
+  if (addr && addr[0] == '!') {
 # ifdef IPV6_V6ONLY
 	int on = 1;
 	if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
