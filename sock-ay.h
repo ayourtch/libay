@@ -93,6 +93,7 @@ int sock_get_fd(int idx);
 dbuf_t *cdata_get_appdata_dbuf(int idx, const char *appdata_sig);
 void cdata_set_appdata_dbuf(int idx, dbuf_t *d);
 
+int cdata_get_remote(int idx, struct sockaddr_storage *sa);
 int cdata_get_remote4(int idx, uint32_t *addr, uint16_t *port);
 int cdata_set_remote4(int idx, uint32_t *addr, uint16_t *port);
 int cdata_check_remote4(int idx, uint32_t addr, uint16_t port);

@@ -161,6 +161,13 @@ cdata_get_handlers(int idx)
   return &cdata[idx].handlers;
 }
 
+
+int 
+cdata_get_remote(int idx, struct sockaddr_storage *sa) {
+  memcpy(sa, &cdata[idx].remote, cdata[idx].remote.sin6_len);
+  return 0;
+}
+
 int 
 cdata_get_remote4(int idx, uint32_t *addr, uint16_t *port) {
   debug(DBG_GLOBAL, -1, "Fixme cdata_get_remote4");
