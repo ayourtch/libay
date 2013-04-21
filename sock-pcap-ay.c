@@ -152,6 +152,7 @@ int attach_pcap_with_filter(char *dev, char *filter)
     }
     int idx = sock_make_new(pcap_fileno(pcap), pcap);
     pcap_setnonblock(pcap, 1, errbuf);
+    pcap_setdirection(pcap, PCAP_D_IN);
     sock_set_hooks(idx, pcap_send, pcap_recv);
     int res = pcap_alloc_info(idx, dev);
     debug(DBG_GLOBAL, 1, "PCAP%s on device (%s) added to index %d", (res ? "(with info)" : ""), dev, idx);
