@@ -1110,6 +1110,25 @@ sock_send_data(int i, dbuf_t * d)
   return nwrote;
 }
 
+/**
+ * Attempt to send some data to some remote 
+ * and return the number of bytes written.
+ */
+int
+sock_send_data_to(int i, dbuf_t * d, struct sockaddr_storage *remote)
+{
+  int nwrote = -1;
+  if(cdata[i].is_udp) {
+    nwrote =
+	sendto(ufds[i].fd,
+	       &d->buf[cdata[i].written],
+	       d->dsize - cdata[i].written,
+	       0, (struct sockaddr *) remote, remote->ss_len);
+	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
+  }
+  return nwrote;
+}
+
 /* try to send the data with queueing, if needed */
 int
 sock_write_data(int i, dbuf_t *d)
