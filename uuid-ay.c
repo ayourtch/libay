@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <openssl/sha.h>
+#include "sha1.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include "uuid_sysdep.h"
@@ -265,7 +265,7 @@ uuid_create_sha1_from_name(uuid_t * uuid, uuid_t nsid, void *name,
                            int namelen)
 {
   SHA_CTX c;
-  unsigned char hash[20];
+  uint8_t hash[SHA1_DIGEST_SIZE];
   uuid_t net_nsid;
 
   /*
@@ -278,9 +278,9 @@ uuid_create_sha1_from_name(uuid_t * uuid, uuid_t nsid, void *name,
   net_nsid.time_hi_and_version = htons(net_nsid.time_hi_and_version);
 
   SHA1_Init(&c);
-  SHA1_Update(&c, &net_nsid, sizeof net_nsid);
+  SHA1_Update(&c, (void *)&net_nsid, sizeof net_nsid);
   SHA1_Update(&c, name, namelen);
-  SHA1_Final(hash, &c);
+  SHA1_Final(&c, hash);
 
   /*
      the hash is in network byte order at this point 
