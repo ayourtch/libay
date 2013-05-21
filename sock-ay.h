@@ -95,6 +95,7 @@ void cdata_set_appdata_dbuf(int idx, dbuf_t *d);
 
 int cdata_get_remote(int idx, struct sockaddr_storage *sa);
 int cdata_get_remote4(int idx, uint32_t *addr, uint16_t *port);
+int cdata_set_remote(int idx, struct sockaddr_storage *sa);
 int cdata_set_remote4(int idx, uint32_t *addr, uint16_t *port);
 int cdata_check_remote4(int idx, uint32_t addr, uint16_t port);
 // immediate send. Use only for the UDP sockets, preferrably. i == idx
