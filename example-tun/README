@@ -1,0 +1,6 @@
+To compile this example, the libay needs to have 
+the TUNTAP support, i.e. you need to compile it with:
+
+make CFLAGS=-DWITH_TUNTAP
+
+
