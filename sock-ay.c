@@ -164,7 +164,7 @@ cdata_get_handlers(int idx)
 
 int 
 cdata_get_remote(int idx, struct sockaddr_storage *sa) {
-  memcpy(sa, &cdata[idx].remote, cdata[idx].remote.sin6_len);
+  memcpy(sa, &cdata[idx].remote, sizeof(cdata[idx].remote));
   return 0;
 }
 
@@ -184,7 +184,7 @@ cdata_get_remote4(int idx, uint32_t *addr, uint16_t *port) {
 
 int 
 cdata_set_remote(int idx, struct sockaddr_storage *sa) {
-  memcpy(&cdata[idx].remote, sa, cdata[idx].remote.sin6_len);
+  memcpy(&cdata[idx].remote, sa, sizeof(cdata[idx].remote));
   return 0;
 }
 
@@ -1129,7 +1129,7 @@ sock_send_data_to(int i, dbuf_t * d, struct sockaddr_storage *remote)
 	sendto(ufds[i].fd,
 	       &d->buf[cdata[i].written],
 	       d->dsize - cdata[i].written,
-	       0, (struct sockaddr *) remote, remote->ss_len);
+	       0, (struct sockaddr *) remote, sizeof(remote));
 	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
   }
   return nwrote;
