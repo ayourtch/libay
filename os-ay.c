@@ -27,12 +27,21 @@
  * @defgroup osfunc OS-interaction functions (signals and execution)
  */
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <errno.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #ifdef WITH_TUNTAP
+#ifdef __linux__
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#endif
+#ifdef __APPLE__
+#include <sys/sys_domain.h>
+#include <sys/kern_control.h>
+#include <net/if_utun.h>
+#endif
 #endif
 
 
@@ -128,6 +137,8 @@ time_t get_file_mtime(char *fname)
 
 #ifdef WITH_TUNTAP
 
+#ifdef __linux__
+
 int tuntap_alloc(char *dev, int kind) 
 {
   struct ifreq ifr;
@@ -160,6 +171,78 @@ int tun_alloc(char *dev)
 {
   return tuntap_alloc(dev, IFF_TUN);
 }
+
+#endif /* linux */
+
+#ifdef __APPLE__
+
+int tap_alloc(char *dev) 
+{
+  fprintf(stderr, "No tap interfaces on MacOS X, sorry !\n");
+  return -1;
+}
+
+/* 
+ * The initial code is from 
+ * http://www.newosxbook.com/src.jl?tree=listings&file=17-15-utun.c
+ * by Jonathan Levin.
+ *
+ * Thank you Jonathan!
+ */
+
+
+int tun_alloc(char *dev) 
+{
+  struct sockaddr_ctl sc;
+  struct ctl_info ctlInfo;
+  int fd;
+  int utun_unit;
+
+  memset(&ctlInfo, 0, sizeof(ctlInfo));
+  if (strlcpy(ctlInfo.ctl_name, UTUN_CONTROL_NAME, sizeof(ctlInfo.ctl_name)) >=
+      sizeof(ctlInfo.ctl_name)) {
+          fprintf(stderr,"UTUN_CONTROL_NAME too long");
+          return -1;
+  }
+  fd = socket(PF_SYSTEM, SOCK_DGRAM, SYSPROTO_CONTROL);
+
+  if (fd == -1) {
+          perror ("socket(SYSPROTO_CONTROL)");
+          return -1;
+  }
+  if (ioctl(fd, CTLIOCGINFO, &ctlInfo) == -1) {
+          perror ("ioctl(CTLIOCGINFO)");
+          close(fd);
+          return -1;
+  }
+
+  sc.sc_id = ctlInfo.ctl_id;
+  sc.sc_len = sizeof(sc);
+  sc.sc_family = AF_SYSTEM;
+  sc.ss_sysaddr = AF_SYS_CONTROL;
+  for(sc.sc_unit = 1; ; sc.sc_unit++) {
+    /*
+    * If the connect is successful,
+    * a tun%d device will be created, where "%d"
+    * is our unit number -1
+    */
+    if (connect(fd, (struct sockaddr *)&sc, sizeof(sc)) == 0) {
+      if(dev) {
+        sprintf(dev, "utun%d", sc.sc_unit - 1);
+      }
+      return fd;
+    } else if (EBUSY == errno) {
+	/* fall through to retry the next unit */
+    } else {
+      perror ("connect(AF_SYS_CONTROL)");
+      close(fd);
+      return -1;
+    }
+  }
+  return fd;
+}
+
+#endif /* APPLE */
 
 #endif
 
