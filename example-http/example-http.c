@@ -7,20 +7,23 @@
 #include "http-parser.h"
 
 int tuni;
+http_parser_t http_parser;
 
 
 int tun_read_ev(int idx, dbuf_t *d, void *p) {
-  http_parser_t parser;
-  http_parser_init(&parser);
-  if(http_parser_data(&parser, d->buf, d->dsize)) {
+  http_parser_t *parser = &http_parser;
+  http_parser_init(parser);
+  if(http_parser_data(parser, d->buf, d->dsize)) {
     char *reply = "This is a test!\n";
     char headers[512];
 
-    debug(DBG_GLOBAL, 1, "Parser done!");
+    debug(DBG_GLOBAL, 1, "Parser done. Method: '%s', URI: '%s'", parser->req_method, parser->req_uri);
 
     snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: text/plain\r\n\r\n", (int)strlen(reply));
     sock_send_data(idx, dstrcpy(headers));
     sock_send_data(idx, dstrcpy(reply));
+  } else {
+    return 0;
   }
   
   // printf("Got packet, sending back!\n");
