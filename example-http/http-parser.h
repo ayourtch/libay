@@ -5,6 +5,10 @@ typedef struct http_parser_t {
   int hname;
   int pcs, pce;
   char buf[8192];
+
+  /* These are the pointers to the above buf where everything is stored */
+  char *req_method;
+  char *req_uri; 
 } http_parser_t;
 
 void http_parser_init(http_parser_t *parser);

@@ -256,7 +256,7 @@ _match:
 		{
 	case 0:
 #line 12 "http-parser.rl"
-	{ markp = p; }
+	{ parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
 	break;
 	case 1:
 #line 13 "http-parser.rl"
@@ -268,11 +268,11 @@ _match:
 	break;
 	case 3:
 #line 15 "http-parser.rl"
-	{ store_acc_data(parser, markp, p); markp = NULL; }
+	{ store_acc_data(parser, markp, p); markp = NULL; parser->req_method = &parser->buf[parser->pcs]; }
 	break;
 	case 4:
 #line 16 "http-parser.rl"
-	{ store_acc_data(parser, markp, p); markp = NULL; printf("URI: %s\n", &parser->buf[parser->pcs]); }
+	{ store_acc_data(parser, markp, p); markp = NULL; parser->req_uri = &parser->buf[parser->pcs]; }
 	break;
 	case 5:
 #line 17 "http-parser.rl"

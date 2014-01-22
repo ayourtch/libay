@@ -9,11 +9,11 @@
   machine httpparser;
   alphtype char;
 
-  action mark      { markp = p; }
+  action mark      { parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
   action http_version_major { store_acc_data(parser, markp, p); markp = NULL; }
   action http_version_minor { store_acc_data(parser, markp, p); markp = NULL; }
-  action http_method { store_acc_data(parser, markp, p); markp = NULL; }
-  action http_uri { store_acc_data(parser, markp, p); markp = NULL; printf("URI: %s\n", &parser->buf[parser->pcs]); }
+  action http_method { store_acc_data(parser, markp, p); markp = NULL; parser->req_method = &parser->buf[parser->pcs]; }
+  action http_uri { store_acc_data(parser, markp, p); markp = NULL; parser->req_uri = &parser->buf[parser->pcs]; }
   action http_header_name { store_acc_data(parser, markp, p); markp = NULL; }
   action mark_value { parser->hname = parser->pcs; parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
   action http_header_value { store_acc_data(parser, markp, p); markp = NULL; }
