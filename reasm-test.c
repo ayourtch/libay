@@ -18,15 +18,15 @@ int cmdlen = 0;
 int cli_read_ev(int idx, dbuf_t *di, void *p) {
   int i;
   char *op;
-  dbuf_t *d;
+  dbuf_t *d = NULL;
   char *cmd = di->buf;
   debug(0,0, "Cmd: '%s'", cmd);
   if (NULL == cmd) {
-    return;
+    return 1;
   }
   op = strtok(cmd, " ");
   if (NULL == op) {
-    return;
+    return 1;
   }
 
   if (0 == strcmp(op, "h")) {
@@ -60,7 +60,7 @@ int cli_read_ev(int idx, dbuf_t *di, void *p) {
       debug(0,0, "Reassembly in progress");
     }
   }
-  return d->dsize || 1;
+  return (d ? d->dsize : 0) || 1;
 }
 
 int main(int argc, char *argv[]) {
