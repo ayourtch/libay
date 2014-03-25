@@ -1,3 +1,4 @@
+# make CFLAGS="-D WITH_TUNTAP -D WITH_PCAP"
 all: test reasm-test reasm-tests-run
 override CFLAGS += -g
 
