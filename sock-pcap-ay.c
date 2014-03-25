@@ -35,6 +35,9 @@
 #ifdef LINUX
 #include <netpacket/packet.h>
 #endif
+#ifdef __APPLE__
+#include <net/if_dl.h>
+#endif
 #include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip6.h>
@@ -102,6 +105,16 @@ int pcap_alloc_info(int idx, char *dev) {
     if (strcmp(dev, pdev->name) == 0) {
       for(addr = pdev->addresses; addr != NULL; addr = addr->next) {
         printf("AF: %d\n", addr->addr->sa_family);
+#ifdef __APPLE__
+	if (addr->addr->sa_family == AF_LINK) {
+	  struct sockaddr_dl *s = (void *) (addr->addr);
+	  if (s->sdl_alen == 6) {
+	    memcpy(psi->mac_buf, &s->sdl_data[s->sdl_nlen], 6);
+	    psi->mac = psi->mac_buf;
+	    found_mac = 1;
+	  }
+        }
+#endif
 #ifdef LINUX
 	if (addr->addr->sa_family == AF_PACKET) {
 	  struct sockaddr_ll *s = (void *) (addr->addr);
