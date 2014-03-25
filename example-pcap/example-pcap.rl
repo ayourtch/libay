@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   d = dalloc(2000);
 
   while(1) {
-    nread = read(1, buf, 1000);
+    nread = read(0, buf, 1000);
     p = buf;
     pe = buf + nread;
     reset_acc();
