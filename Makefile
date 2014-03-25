@@ -1,5 +1,5 @@
 all: test reasm-test reasm-tests-run
-CFLAGS=-g
+override CFLAGS += -g
 
 CC=gcc
 OBJS=debug-ay.o lists-ay.o hash-func-ay.o hash-ay.o uuid_sysdep.o uuid-ay.o dbuf-ay.o timers-ay.o os-ay.o sock-ay.o httpd-ay.o reasm-ay.o sock-pcap-ay.o sock-cli.o sock-line.o sha1.o
