@@ -366,6 +366,15 @@ dresize(dbuf_t * d, size_t size)
   return 1;
 }
 
+int dprepend(dbuf_t *d, size_t delta) {
+  int res = dresize(d, d->size + delta);
+  if(res) {
+    memmove(&d->buf[delta], &d->buf[0], d->size - delta);
+    memset(&d->buf[0], 0, delta);
+  }
+  return res;
+}
+
 /**
  * Grow the dbuf data buffer size by some amount
  *

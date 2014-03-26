@@ -110,6 +110,7 @@ int dcheckusig(dbuf_t *d, const char *uptype_sig);
 dbuf_t *dalloczf(int size);
 dbuf_t *dlock(void *ptr);
 int dgrow(dbuf_t * d, size_t delta);
+int dprepend(dbuf_t *d, size_t delta);
 void ddestructor(dbuf_t * d, dbuf_destructor_t destr);
 void dunlock(void *ptr);
 
