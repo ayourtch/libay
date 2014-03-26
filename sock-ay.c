@@ -129,6 +129,11 @@ sock_get_fd(int idx)
 }
 
 void
+sock_is_multiread(int idx, int val) {
+  cdata[idx].sock_is_multiread = val;
+}
+
+void
 sock_set_hooks(int idx, sock_io_t do_send, sock_io_t do_recv)
 {
   cdata[idx].do_send = do_send;
@@ -1044,9 +1049,10 @@ sock_receive_data(int i, dbuf_t * d)
  * @see sock_tcp_listener_pollin
  */
 
-void
+int
 sock_connected_pollin(int i, void *u_ptr)
 {
+  int ret = 0;
 #ifdef WITH_SSL
   if(cdata[i].do_ssl) {
     sock_ssl_pollinout(i, u_ptr);
@@ -1061,7 +1067,7 @@ sock_connected_pollin(int i, void *u_ptr)
     debug(DBG_GLOBAL, 11, "sock_connected_pollin: new dbuf %x (idx %d)", d,
           i);
     if(d != NULL) {
-      sock_receive_data(i, d);
+      ret = sock_receive_data(i, d);
       debug(DBG_GLOBAL, 11,
             "..read %d bytes - max %d (idx %d)", d->dsize, d->size, i);
       if(d->dsize == 0) {
@@ -1078,6 +1084,7 @@ sock_connected_pollin(int i, void *u_ptr)
       debug(DBG_GLOBAL, 11, ".. NOT allocated chunk (idx %d)", i);
     }
   }
+  return ret;
 }
 
 /**
@@ -1286,7 +1293,13 @@ int sock_one_cycle(int timeout, void *u_ptr) {
           if(cdata[i].connected == 0) {
             sock_unconnected_pollinout(i, u_ptr);
           } else {
-            sock_connected_pollin(i, u_ptr);
+            if (cdata[i].sock_is_multiread) {
+              while (sock_connected_pollin(i, u_ptr) > 0) {
+                /* Loop till there is error reading */
+              }
+            } else {
+              sock_connected_pollin(i, u_ptr); 
+            }
           }
           nevents++;
         }

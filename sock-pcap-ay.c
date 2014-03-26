@@ -60,8 +60,12 @@ pcap_recv(int idx, dbuf_t *d, void *private)
   struct pcap_pkthdr ph;
   pcap_t *pcap = private;
   void *p = (void*) pcap_next(pcap, &ph);
-  d->dsize = ph.caplen;
-  memcpy(d->buf, p, ph.caplen);
+  if(p) {
+    d->dsize = ph.caplen;
+    memcpy(d->buf, p, ph.caplen);
+  } else {
+    d->dsize = -1;
+  }
   return d->dsize;
 }
 
@@ -164,6 +168,7 @@ int attach_pcap_with_filter(char *dev, char *filter)
       }
     }
     int idx = sock_make_new(pcap_fileno(pcap), pcap);
+    sock_is_multiread(idx, 1);
     pcap_setnonblock(pcap, 1, errbuf);
     pcap_setdirection(pcap, PCAP_D_IN);
     sock_set_hooks(idx, pcap_send, pcap_recv);

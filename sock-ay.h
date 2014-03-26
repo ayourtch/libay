@@ -71,6 +71,7 @@ typedef struct sock_handlers_t_tag {
 void print_socks(void);
 
 int sock_make_new(int fd, void *private);
+void sock_is_multiread(int idx, int val);
 void sock_set_hooks(int idx, sock_io_t do_send, sock_io_t do_recv);
 
 int bind_tcp_listener_specific(char *addr, int port);

@@ -49,6 +49,8 @@ typedef struct {
   int rx_count;
   int tx_count;
 
+  int sock_is_multiread;	/* =1 if we need to keep reading in the cycle till error - e.g. pcap */
+
   int do_ssl;                   /* =1 if we need to negotiate the SSL still (only valid for TCP) */
   int is_ssl;                   /* =1 if this is ssl-protected socket with a finished handshake, else 0. only valid for TCP */
   SSL *ssl;                     /* the SSL thing to write to/read from, should be valid if is_ssl is set */
