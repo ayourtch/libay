@@ -55,6 +55,7 @@ void debug_will_need_redraw(debug_redraw_cb_t *cb);
 void debug_redraw_if_needed();
 
 
+void debug_show_timestamp(int show);
 int debug(debug_type_t type, int level, const char *fmt, ...);
 int set_debug_level(debug_type_t type, int level);
 int get_debug_level();

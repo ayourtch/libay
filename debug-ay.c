@@ -87,6 +87,13 @@ void debug_redraw_if_needed() {
 }
 
 
+static int show_timestamp_in_debugs = 1;
+
+void 
+debug_show_timestamp(int show) {
+  show_timestamp_in_debugs = show;
+}
+
 /**
  * Routine to print the debug messages with timestamp.
  *
@@ -112,7 +119,11 @@ debug(debug_type_t type, int level, const char *fmt, ...)
 
   if(is_debug_on(type, level)) {
 
-    gettimeofday(&tv, NULL);
+    if (show_timestamp_in_debugs) {
+      gettimeofday(&tv, NULL);
+    } else {
+      memset(&tv, 0, sizeof(struct timeval));
+    }
     asctime_r(localtime(&tv.tv_sec), date_buf);
     date_buf[strlen(date_buf) - 6] = 0;
 
