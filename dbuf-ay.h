@@ -79,6 +79,7 @@ typedef struct dbuf {
   backtrace_t allocator; /**< backtrace of the allocator */
 
   backtrace_t releaser; /**< backtrace of the releaser */
+  void *user_struct; /**< user data structure. Freed when dbuf is freed */
 } dbuf_t;
 
 /**

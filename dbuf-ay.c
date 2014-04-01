@@ -176,6 +176,7 @@ dalloc(int size)
   d->growsize = DMEMCAT_CHUNK_INCREMENT;
   d->buf = buf;
   d->destructor = NULL;
+  d->user_struct = NULL;
   dsetsig(d);
   get_backtrace(&d->allocator);
   bzero(&d->releaser, sizeof(d->releaser));
@@ -313,6 +314,10 @@ dunlock(void *ptr)
       //memset(d, 0xCA, sizeof(*d));
       d->signature = 0xCACACACA;
       d->uptype_sig = NULL;
+      if (d->user_struct) {
+        free(d->user_struct);
+        d->user_struct = (void *)0xCACACACA;
+      }
       free(d);
     }
   }
