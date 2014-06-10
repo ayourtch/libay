@@ -603,6 +603,7 @@ initiate_connect(char *addr, int port)
       debug(DBG_GLOBAL, 1,
             "Unexpected error on connection attempt for index %d: %s",
             idx, strerror(errno));
+      close(s);
       return -1;
     }
 
