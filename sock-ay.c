@@ -1137,7 +1137,7 @@ sock_send_data_to(int i, dbuf_t * d, struct sockaddr_storage *remote)
 	sendto(ufds[i].fd,
 	       &d->buf[cdata[i].written],
 	       d->dsize - cdata[i].written,
-	       0, (struct sockaddr *) remote, sizeof(remote));
+	       0, (struct sockaddr *) remote, sizeof(*remote));
 	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
   }
   return nwrote;
