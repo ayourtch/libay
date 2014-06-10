@@ -749,6 +749,7 @@ ev_http_read(int idx, dbuf_t * d, void *u_ptr)
             idx, ad->http_path);
       ad->l7state = HTTP_L7_SHOWTIME;
       http_handle_request_connect(idx);
+      break;
     default:
       debug(DBG_GLOBAL, 3,
             "Index %d could not determine request (yet?), still in L7_INIT",
