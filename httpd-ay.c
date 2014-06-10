@@ -291,7 +291,7 @@ http_handle_request(int idx)
   deof = dalloc(10);
 
 
-  if(ad->dispatcher) {
+  if(ad && ad->dispatcher) {
     http_handler_func_t handler = ad->dispatcher(dad);
     if(handler == NULL) {
       debug(DBG_GLOBAL, 2, "Dispatcher found no action for path: '%s'", ad->http_path);
@@ -346,6 +346,7 @@ http_handle_request_connect(int idx)
 
   if(ad == NULL) {
     debug(DBG_GLOBAL, 0, "Null appdata for HTTP, idx: %d", idx);
+    return 0;
   }
 
 
