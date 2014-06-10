@@ -274,7 +274,7 @@ http_handle_request(int idx)
   dbuf_t *dh;
   dbuf_t *deof;
   dbuf_t *dad = cdata_get_appdata_dbuf(idx, http_appdata_sig);
-  appdata_http_t *ad;
+  appdata_http_t *ad = NULL;
 
   if (dad) {
     ad = http_dbuf_get_appdata(dad);
