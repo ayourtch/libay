@@ -192,7 +192,7 @@ ldelete(listitem_t ** li, listitem_t * li_el)
 {
   //listitem_t *li2;
 
-  debug(DBG_GLOBAL, 10, "deleting item %x from list %x", li_el, *li);
+  debug(DBG_GLOBAL, 10, "deleting item %x from list %x/%x", li_el, li, li ? *li : NULL);
   if(li == NULL) {
     return;
   }

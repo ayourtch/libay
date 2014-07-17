@@ -274,7 +274,7 @@ http_handle_request(int idx)
   dbuf_t *dh;
   dbuf_t *deof;
   dbuf_t *dad = cdata_get_appdata_dbuf(idx, http_appdata_sig);
-  appdata_http_t *ad;
+  appdata_http_t *ad = NULL;
 
   if (dad) {
     ad = http_dbuf_get_appdata(dad);
@@ -291,7 +291,7 @@ http_handle_request(int idx)
   deof = dalloc(10);
 
 
-  if(ad->dispatcher) {
+  if(ad && ad->dispatcher) {
     http_handler_func_t handler = ad->dispatcher(dad);
     if(handler == NULL) {
       debug(DBG_GLOBAL, 2, "Dispatcher found no action for path: '%s'", ad->http_path);
@@ -346,6 +346,7 @@ http_handle_request_connect(int idx)
 
   if(ad == NULL) {
     debug(DBG_GLOBAL, 0, "Null appdata for HTTP, idx: %d", idx);
+    return 0;
   }
 
 
@@ -749,6 +750,7 @@ ev_http_read(int idx, dbuf_t * d, void *u_ptr)
             idx, ad->http_path);
       ad->l7state = HTTP_L7_SHOWTIME;
       http_handle_request_connect(idx);
+      break;
     default:
       debug(DBG_GLOBAL, 3,
             "Index %d could not determine request (yet?), still in L7_INIT",

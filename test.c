@@ -20,7 +20,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
 
 int main(int argc, char *argv[]) {
   int sock;
-  int timeout;
+  int timeout = 1000;
   htable_t *ht;
   int res;
   dbuf_t *d;

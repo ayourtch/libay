@@ -164,7 +164,7 @@ int tuntap_alloc(char *dev, int kind)
 
 int tap_alloc(char *dev) 
 {
-  return tuntap_alloc(dev, IFF_TAP);
+  return tuntap_alloc(dev, IFF_TAP | IFF_NO_PI);
 }
 
 int tun_alloc(char *dev) 
