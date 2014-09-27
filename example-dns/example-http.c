@@ -173,8 +173,10 @@ int dns_read_ev(int idx, dbuf_t *d, void *p) {
   socklen_t sockaddr_sz = sizeof(v6_addr);
   char *cbname = "udp5353";
 
+  cdata_get_remote(idx, &v6_addr);
   inet_ntop(AF_INET6, &v6_addr.sin6_addr, v6addr_text, INET6_ADDRSTRLEN);
   lua_getglobal(LGL, cbname);
+
   if(lua_isfunction(LGL, -1)) {
     lua_pushstring(LGL, v6addr_text);
     lua_pushinteger(LGL, v6_addr.sin6_port);
@@ -202,6 +204,7 @@ int main(int argc, char *argv[]) {
   hdl->ev_read = tun_read_ev;
 
   udp5353 = bind_udp_listener_specific("::", 5353, NULL);
+  join_mdns_groups(sock_get_fd(udp5353));
   hdl = cdata_get_handlers(udp5353);
   hdl->ev_read = dns_read_ev;
 
