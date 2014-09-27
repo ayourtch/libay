@@ -87,7 +87,7 @@
 
   htp_segment = (htp_puint8_t*);
   htp_fsegment = (htp_puint8_t+);
-  htp_path = (htp_fsegment ('/' htp_fsegment)*);
+  htp_path = (htp_fsegment ('/' htp_fsegment*)*);
 
   htp_rel_path = ( htp_path? (';' htp_params)? ('?' htp_query)? );
   htp_abs_path = ('/' htp_rel_path);
