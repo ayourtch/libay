@@ -9,7 +9,8 @@ SOURCE=example-http.c
 example-http: $(OBJECTS) http-parser.c data.zip ../libay.a
 	$(CC) $(CFLAGS) $(OBJECTS) -o example-http $(LDFLAGS)
 
-data.zip: data
+.PHONY: data.zip
+data.zip:
 	(cd data; zip -r ../data.zip .)
 
 http-parser.c: http-parser.rl
