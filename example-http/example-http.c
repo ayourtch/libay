@@ -33,6 +33,7 @@ static int lua_fn_dsend(lua_State *L) {
   memcpy(d->buf, data, len);
   d->dsize = len;
   sock_write_data(idx, d);
+  dunlock(d);
 
   lua_pushnumber(L, len);
 

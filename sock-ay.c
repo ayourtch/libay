@@ -1153,7 +1153,7 @@ sock_write_data(int i, dbuf_t *d)
     } else {
       dbuf_t *d1 = dsubstrcpy(d, nwrote, d->dsize - nwrote);
       dsend(i, d1);
-      dunlock(d);
+      dunlock(d1);
     }
   }
   return nwrote;
