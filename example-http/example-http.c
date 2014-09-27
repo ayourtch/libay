@@ -53,7 +53,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
 
 
 int main(int argc, char *argv[]) {
-  int timeout;
+  int timeout = 0;
   sock_handlers_t *hdl;
 
   set_debug_level(DBG_GLOBAL, 1000);
