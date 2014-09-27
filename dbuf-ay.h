@@ -105,6 +105,7 @@ enum {
 
 
 dbuf_t *dalloc(int size);
+dbuf_t *dalloc_ptr(void *data, size_t size);
 dbuf_t * dsetusig(dbuf_t *d, const char *uptype_sig);
 int dcheckusig(dbuf_t *d, const char *uptype_sig);
 

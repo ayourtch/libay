@@ -186,6 +186,16 @@ dalloc(int size)
   return d;
 }
 
+dbuf_t *
+dalloc_ptr(void *data, size_t size) {
+  dbuf_t *d = dalloc(1);
+  free(d->buf);
+  d->buf = data;
+  d->size = size;
+  d->dsize = size;
+  return d;
+}
+
 
 dbuf_t *
 dsetusig(dbuf_t *d, const char *uptype_sig)
