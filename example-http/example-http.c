@@ -30,6 +30,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
     } else if(strstr(parser->req_uri, ".js")) {
       content_type = "application/javascript";
     }
+    debug(0,0, "Parser trailer: '%s'", parser->end);
 
     xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
     if(xfile) {

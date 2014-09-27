@@ -31,8 +31,8 @@
   htp_ht = ( 9 );
   htp_quote = ( '"' );
 
-  htp_crlf = ( htp_cr htp_lf? ); # // Accomodate for unix NLs ?
-  # htp_crlf = ( htp_cr htp_lf ); # // do NOT accomodate for unix NLs ?
+  # htp_crlf = ( htp_cr htp_lf? ); # // Accomodate for unix NLs ?
+  htp_crlf = ( htp_cr htp_lf ); # // do NOT accomodate for unix NLs ?
 
   htp_lws = ( htp_crlf? (htp_sp | htp_ht)+ ); 
 
@@ -118,7 +118,7 @@
   htp_last_crlf = htp_crlf; #  >{ printf("Last CRLF!\n"); eof = pe; };
   htp_request = htp_request_line (htp_some_header)* htp_last_crlf;
 
-  main := (htp_request) @{ parser->done = 1; };
+  main := (htp_request) @{ parser->done = 1; parser->end = p+1; };
 
 }%%
 
@@ -133,6 +133,7 @@ void http_parser_init(http_parser_t *parser) {
   %%write init;
 
   parser->cs = cs;
+  parser->end = NULL;
 }
 
 int store_acc_data(http_parser_t *parser, uint8_t *start, uint8_t *end) {

@@ -9,6 +9,9 @@ typedef struct http_parser_t {
   /* These are the pointers to the above buf where everything is stored */
   char *req_method;
   char *req_uri; 
+
+  /* This is the pointer to the content after successful parsing */
+  char *end;
 } http_parser_t;
 
 void http_parser_init(http_parser_t *parser);
