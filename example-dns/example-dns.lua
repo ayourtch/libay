@@ -6,14 +6,14 @@ function udp53(srcaddr, srcport, data)
   print("Received udp53 from ", srcaddr, srcport)
   dns._resolver.time = 0
   local resp = dns._resolver:decode(data, true)
-  print(inspect(resp))
+  -- print(inspect(resp))
 end
 
 function udp5353(srcaddr, srcport, data)
   print("Received udp5353 from ", srcaddr, srcport)
   dns._resolver.time = 0
   local resp = dns._resolver:decode(data, true)
-  print(inspect(resp))
+  -- print(inspect(resp))
 end
 
 
