@@ -11,7 +11,7 @@ lua-5.1.4/src/lua: lua-5.1.4.tar.gz
 	tar xzvf lua-5.1.4.tar.gz
 	(cd lua-5.1.4; make posix)
 
-example-http: $(OBJECTS) http-parser.c data.zip ../libay.a lua-5.1.4/src/lua lsqlite3.o
+example-http: lua-5.1.4/src/lua $(OBJECTS) http-parser.c data.zip ../libay.a lsqlite3.o
 	$(CC) $(CFLAGS) $(OBJECTS) -o example-http $(LDFLAGS)
 
 .PHONY: data.zip
@@ -26,5 +26,6 @@ all:example-http
 
 .PHONY: clean
 clean:
-	rm -f *~ *.o example-http
+	rm -f *~ *.o example-http data.zip
+	rm -fr lua-5.1.4
 
