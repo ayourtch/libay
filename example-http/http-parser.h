@@ -10,6 +10,8 @@ typedef struct http_parser_t {
   char *req_method;
   char *req_uri; 
 
+  size_t content_length;
+
   /* This is the pointer to the content after successful parsing */
   char *end;
 } http_parser_t;

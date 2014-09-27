@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
 #include "http-parser.h"
 #include "debug-ay.h"
 
@@ -14,9 +15,9 @@
   action http_version_minor { store_acc_data(parser, markp, p); markp = NULL; }
   action http_method { store_acc_data(parser, markp, p); markp = NULL; parser->req_method = &parser->buf[parser->pcs]; }
   action http_uri { store_acc_data(parser, markp, p); markp = NULL; parser->req_uri = &parser->buf[parser->pcs]; }
-  action http_header_name { store_acc_data(parser, markp, p); markp = NULL; }
-  action mark_value { parser->hname = parser->pcs; parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
-  action http_header_value { store_acc_data(parser, markp, p); markp = NULL; }
+  action http_header_name { parser->hname = parser->pcs; store_acc_data(parser, markp, p); markp = NULL; }
+  action mark_value { parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
+  action http_header_value { store_acc_data(parser, markp, p); parser->hname = 0; markp = NULL; }
   
   htp_octet = (any);
   htp_uint8_t = (ascii);
@@ -146,8 +147,19 @@ int store_acc_data(http_parser_t *parser, uint8_t *start, uint8_t *end) {
   old_pce = parser->pce;
   parser->pce += end-start;
   parser->buf[parser->pce] = 0;
-  debug(DBG_GLOBAL, 0, "Storing data: '%s'", &parser->buf[old_pce]);
-  
+  if(parser->hname && (old_pce != parser->hname) ) {
+    char *p_hname = &parser->buf[parser->hname];
+    char *p_hval = &parser->buf[old_pce];
+    debug(DBG_GLOBAL, 0, "Storing header[%d]: '%s' == data[%d]: '%s'", parser->hname, &parser->buf[parser->hname], old_pce, &parser->buf[old_pce]);
+    if (0 == strcmp(p_hname, "Content-Length")) {
+      char out[64];
+      parser->content_length = atoll(p_hval);
+      snprintf(out, sizeof(out), "%lld", parser->content_length);
+      assert(0 == strcmp(out, p_hval));
+    }
+  } else {
+    debug(DBG_GLOBAL, 0, "Storing data[%d]: '%s'", old_pce, &parser->buf[old_pce]);
+  }
   return 1;
 }
 

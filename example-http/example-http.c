@@ -19,6 +19,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
     char *reply = "File not found!\n";
     char *content_type = "text/plain";
     char headers[512];
+    char trailer[1024];
     void *xfile;
     size_t xfile_sz;
 
@@ -30,7 +31,9 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
     } else if(strstr(parser->req_uri, ".js")) {
       content_type = "application/javascript";
     }
-    debug(0,0, "Parser trailer: '%s'", parser->end);
+    memcpy(trailer, parser->end, parser->content_length);
+    trailer[parser->content_length] = 0;
+    debug(0,0, "Parser trailer: '%s'", trailer);
 
     xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
     if(xfile) {

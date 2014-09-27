@@ -3,16 +3,17 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <assert.h>
 #include "http-parser.h"
 #include "debug-ay.h"
 
 
 
-#line 123 "http-parser.rl"
+#line 124 "http-parser.rl"
 
 
   
-#line 16 "http-parser.c"
+#line 17 "http-parser.c"
 static const char _httpparser_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	3, 1, 4, 1, 5, 1, 6, 1, 
@@ -124,7 +125,7 @@ static const int httpparser_error = 0;
 static const int httpparser_en_main = 1;
 
 
-#line 126 "http-parser.rl"
+#line 127 "http-parser.rl"
 
 
 void http_parser_init(http_parser_t *parser) {
@@ -133,12 +134,12 @@ void http_parser_init(http_parser_t *parser) {
   memset(parser, 0, sizeof(*parser));
 
   
-#line 137 "http-parser.c"
+#line 138 "http-parser.c"
 	{
 	cs = httpparser_start;
 	}
 
-#line 134 "http-parser.rl"
+#line 135 "http-parser.rl"
 
   parser->cs = cs;
   parser->end = NULL;
@@ -154,8 +155,19 @@ int store_acc_data(http_parser_t *parser, uint8_t *start, uint8_t *end) {
   old_pce = parser->pce;
   parser->pce += end-start;
   parser->buf[parser->pce] = 0;
-  debug(DBG_GLOBAL, 0, "Storing data: '%s'", &parser->buf[old_pce]);
-  
+  if(parser->hname && (old_pce != parser->hname) ) {
+    char *p_hname = &parser->buf[parser->hname];
+    char *p_hval = &parser->buf[old_pce];
+    debug(DBG_GLOBAL, 0, "Storing header[%d]: '%s' == data[%d]: '%s'", parser->hname, &parser->buf[parser->hname], old_pce, &parser->buf[old_pce]);
+    if (0 == strcmp(p_hname, "Content-Length")) {
+      char out[64];
+      parser->content_length = atoll(p_hval);
+      snprintf(out, sizeof(out), "%lld", parser->content_length);
+      assert(0 == strcmp(out, p_hval));
+    }
+  } else {
+    debug(DBG_GLOBAL, 0, "Storing data[%d]: '%s'", old_pce, &parser->buf[old_pce]);
+  }
   return 1;
 }
 
@@ -166,7 +178,7 @@ int http_parser_data(http_parser_t *parser, uint8_t *data, int data_len) {
   uint8_t *markp;
 
   
-#line 170 "http-parser.c"
+#line 182 "http-parser.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -241,42 +253,42 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 12 "http-parser.rl"
+#line 13 "http-parser.rl"
 	{ parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
 	break;
 	case 1:
-#line 13 "http-parser.rl"
-	{ store_acc_data(parser, markp, p); markp = NULL; }
-	break;
-	case 2:
 #line 14 "http-parser.rl"
 	{ store_acc_data(parser, markp, p); markp = NULL; }
 	break;
-	case 3:
+	case 2:
 #line 15 "http-parser.rl"
+	{ store_acc_data(parser, markp, p); markp = NULL; }
+	break;
+	case 3:
+#line 16 "http-parser.rl"
 	{ store_acc_data(parser, markp, p); markp = NULL; parser->req_method = &parser->buf[parser->pcs]; }
 	break;
 	case 4:
-#line 16 "http-parser.rl"
+#line 17 "http-parser.rl"
 	{ store_acc_data(parser, markp, p); markp = NULL; parser->req_uri = &parser->buf[parser->pcs]; }
 	break;
 	case 5:
-#line 17 "http-parser.rl"
-	{ store_acc_data(parser, markp, p); markp = NULL; }
+#line 18 "http-parser.rl"
+	{ parser->hname = parser->pcs; store_acc_data(parser, markp, p); markp = NULL; }
 	break;
 	case 6:
-#line 18 "http-parser.rl"
-	{ parser->hname = parser->pcs; parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
+#line 19 "http-parser.rl"
+	{ parser->pcs = parser->pce+1; parser->pce = parser->pcs; markp = p; }
 	break;
 	case 7:
-#line 19 "http-parser.rl"
-	{ store_acc_data(parser, markp, p); markp = NULL; }
+#line 20 "http-parser.rl"
+	{ store_acc_data(parser, markp, p); parser->hname = 0; markp = NULL; }
 	break;
 	case 8:
-#line 121 "http-parser.rl"
+#line 122 "http-parser.rl"
 	{ parser->done = 1; parser->end = p+1; }
 	break;
-#line 280 "http-parser.c"
+#line 292 "http-parser.c"
 		}
 	}
 
@@ -289,7 +301,7 @@ _again:
 	_out: {}
 	}
 
-#line 161 "http-parser.rl"
+#line 173 "http-parser.rl"
 
   parser->cs = cs;
  
