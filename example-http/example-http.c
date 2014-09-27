@@ -32,7 +32,7 @@ static int lua_fn_dsend(lua_State *L) {
 
   memcpy(d->buf, data, len);
   d->dsize = len;
-  sock_send_data(idx, d);
+  sock_write_data(idx, d);
 
   lua_pushnumber(L, len);
 
@@ -74,6 +74,8 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
       content_type = "text/html";
     } else if(strstr(parser->req_uri, ".js")) {
       content_type = "application/javascript";
+    } else if(strstr(parser->req_uri, ".png")) {
+      content_type = "image/png";
     }
     memcpy(trailer, parser->end, parser->content_length);
     trailer[parser->content_length] = 0;
@@ -81,6 +83,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
 
     xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
     if(xfile) {
+      debug(0, 0, "File '%s' => size is %d", parser->req_uri+1, xfile_sz);
       xfile[xfile_sz] = 0;
       if(strstr(parser->req_uri, ".lua")) {
 	debug(0, 0, "Lua file load : '%s'", xfile);
@@ -96,10 +99,9 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
           }
         }
       } else {
-        reply = xfile;
         snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)xfile_sz, content_type);
-        sock_send_data(idx, dstrcpy(headers));
-        sock_send_data(idx, dstrcpy(reply));
+        sock_write_data(idx, dstrcpy(headers));
+        sock_write_data(idx, dalloc_ptr(xfile, xfile_sz));
       }
     } else {
       snprintf(headers, sizeof(headers)-1, "HTTP/1.0 404 Not Found\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)strlen(reply), content_type);
