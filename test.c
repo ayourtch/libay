@@ -9,12 +9,16 @@ int pcap;
 int tapi;
 
 int pcap_read_ev(int idx, dbuf_t *d, void *p) {
-  return sock_send_data(pcap, d);
+  int nwrote = 0;
+  sock_send_data(pcap, d, &nwrote);
+  return nwrote;
 }
 
 int tun_read_ev(int idx, dbuf_t *d, void *p) {
+  int nwrote = 0;
   printf("Got packet, sending back!\n");
-  return sock_send_data(tapi, d);
+  sock_send_data(tapi, d, &nwrote);
+  return nwrote;
 }
 
 

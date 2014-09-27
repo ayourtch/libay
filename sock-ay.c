@@ -1090,12 +1090,13 @@ sock_connected_pollin(int i, void *u_ptr)
  * Attempt to send some data and return the number of bytes written.
  *
  */
-int
-sock_send_data(int i, dbuf_t * d)
+dbuf_t *
+sock_send_data(int i, dbuf_t * d, int *pnwrote)
 {
   int nwrote;
   if (cdata[i].do_send) {
     nwrote = cdata[i].do_send(i, d, cdata[i].private);
+    if (pnwrote) { *pnwrote = nwrote; }
   } else {
     if(cdata[i].is_udp) {
       nwrote =
@@ -1105,21 +1106,24 @@ sock_send_data(int i, dbuf_t * d)
 	       0, (struct sockaddr *) &cdata[i].remote,
 	       sizeof(cdata[i].remote));
 	debug(DBG_GLOBAL, 11, " -- sendto for udp returned: %d\n", nwrote);     
+      if (pnwrote) { *pnwrote = nwrote; }
     } else {
 #ifdef WITH_SSL
       if(cdata[i].is_ssl) {
 	nwrote =
 	  SSL_write(cdata[i].ssl,
 		    &d->buf[cdata[i].written], d->dsize - cdata[i].written);
-	return nwrote;
+        if (pnwrote) { *pnwrote = nwrote; }
+	return d;
       } 
 #endif
       nwrote =
 	  write(ufds[i].fd,
 		&d->buf[cdata[i].written], d->dsize - cdata[i].written);
+      if (pnwrote) { *pnwrote = nwrote; }
     }
   }
-  return nwrote;
+  return d;
 }
 
 /**
@@ -1142,10 +1146,14 @@ sock_send_data_to(int i, dbuf_t * d, struct sockaddr_storage *remote)
 }
 
 /* try to send the data with queueing, if needed */
-int
-sock_write_data(int i, dbuf_t *d)
+dbuf_t *
+sock_write_data(int i, dbuf_t *d, int *pnwrote)
 {
-  int nwrote = sock_send_data(i, d);
+  int nwrote;
+  sock_send_data(i, d, &nwrote);
+  if(pnwrote) {
+    *pnwrote = nwrote;
+  }
   if (nwrote < d->dsize) {
     if (nwrote <= 0) {
       /* FIXME: this will cause a problem in case of an error, methinks */
@@ -1156,7 +1164,7 @@ sock_write_data(int i, dbuf_t *d)
       dunlock(d1);
     }
   }
-  return nwrote;
+  return d;
 }
 
 /**
@@ -1186,7 +1194,7 @@ sock_connected_pollout(int i, void *u_ptr)
           debug(DBG_GLOBAL, 1, "UDP index %d not connected yet, discard data",
                 i);
         } else {
-          nwrote = sock_send_data(i, d);
+          sock_send_data(i, d, &nwrote);
         }
         debug(DBG_GLOBAL, 1, "written: %d out of %d", nwrote, d->dsize);
         if(nwrote + cdata[i].written == d->dsize) {

@@ -81,7 +81,9 @@ int
 line_send(int idx, dbuf_t *d, void *private) 
 {
   int child_idx = (int) private;
-  return sock_send_data(child_idx, d);
+  int nwrote = 0;
+  sock_send_data(child_idx, d, &nwrote);
+  return nwrote;
 }
 
 

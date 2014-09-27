@@ -71,7 +71,7 @@ int cli_transport_read_ev(int idx, dbuf_t *d, void *p) {
       }
     } else if ((c == '\r') || (c == '\n') || (c == '\x03')) {
       dappendfill(dout, '\n', 1);
-      sock_send_data(idx, dout);
+      sock_send_data(idx, dout, NULL);
       dout = NULL;
       if (c == '\x03') {
         cli->cmd->buf[cli->cmd->dsize++] = c;
@@ -93,7 +93,7 @@ int cli_transport_read_ev(int idx, dbuf_t *d, void *p) {
   }
   if (dout) {
     if (dout->dsize > 0) { 
-      sock_send_data(idx, dout);
+      sock_send_data(idx, dout, NULL);
     } else {
       dunlock(dout);
     }
@@ -112,7 +112,9 @@ int
 cli_send(int idx, dbuf_t *d, void *private) 
 {
   int child_idx = (int) private;
-  return sock_send_data(child_idx, d);
+  int nwrote = 0;
+  sock_send_data(child_idx, d, &nwrote);
+  return nwrote;
 }
 
 
