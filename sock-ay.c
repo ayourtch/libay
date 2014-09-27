@@ -556,7 +556,7 @@ int
 initiate_connect(char *addr, int port)
 {
   int s;
-  struct sockaddr_in sin;
+  struct sockaddr_in6 sin;
   int result;
   int idx = -1;
   struct hostent *hp;
@@ -568,20 +568,18 @@ initiate_connect(char *addr, int port)
        addr, port);
     return -1;
   }
-  s = socket(PF_INET, SOCK_STREAM, 6);
+  s = socket(PF_INET6, SOCK_STREAM, 6);
   if(s < 0) {
     printf("Could not allocate socket!");
     return -1;
   }
   bzero(&sin, sizeof(sin));
-  sin.sin_port = htons(port);
-  sin.sin_family = AF_INET;
-  inet_aton(addr, &sin.sin_addr);
-  hp = gethostbyname(addr);
-  sin.sin_addr.s_addr = ((struct in_addr *) (hp->h_addr))->s_addr;
+  sin.sin6_port = htons(port);
+  sin.sin6_family = AF_INET6;
+  inet_pton(AF_INET6, addr, &sin.sin6_addr);
 
   fcntl(s, F_SETFL, O_NONBLOCK);
-  result = connect(s, (struct sockaddr *) &sin, sizeof(struct sockaddr_in));
+  result = connect(s, (struct sockaddr *) &sin, sizeof(struct sockaddr_in6));
   if(result == 0) {
     printf("Successful connect to %s:%d on a nonblocking socket ??",
            addr, port);
