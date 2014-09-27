@@ -191,6 +191,7 @@ dalloc_ptr(void *data, size_t size) {
   dbuf_t *d = dalloc(1);
   free(d->buf);
   d->buf = data;
+  d->savebuf = d->buf;
   d->size = size;
   d->dsize = size;
   return d;
