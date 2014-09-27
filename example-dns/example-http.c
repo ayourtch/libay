@@ -15,6 +15,8 @@
 
 #include "miniz.c"
 
+lua_State *LGL;
+
 #define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
 
 int join_mdns_groups(int sock) {
@@ -53,6 +55,7 @@ int join_mdns_groups(int sock) {
   if ( setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*) &mreq4, sizeof(mreq4)) != 0 ) {
     printf("Error joining v4 multicast group\n");
   }
+  return 0;
 }
 
 int tuni;
@@ -164,19 +167,55 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
   return -1;
 }
 
+int dns_read_ev(int idx, dbuf_t *d, void *p) {
+  struct sockaddr_in6 v6_addr;
+  char v6addr_text[INET6_ADDRSTRLEN];
+  socklen_t sockaddr_sz = sizeof(v6_addr);
+  char *cbname = "udp5353";
+
+  inet_ntop(AF_INET6, &v6_addr.sin6_addr, v6addr_text, INET6_ADDRSTRLEN);
+  lua_getglobal(LGL, cbname);
+  if(lua_isfunction(LGL, -1)) {
+    lua_pushstring(LGL, v6addr_text);
+    lua_pushinteger(LGL, v6_addr.sin6_port);
+    lua_pushlstring(LGL, d->buf, d->dsize);
+    if (lua_pcall(LGL, 3, 0, 0) != 0) {
+      fprintf(stderr, "Could not call function %s(): %s\n", cbname, lua_tostring(LGL,-1));
+    }
+  } else {
+    fprintf(stderr, "Could not find function %s\n", cbname);
+  }
+  return d->size;
+}
+
+
 
 int main(int argc, char *argv[]) {
   int timeout = 0;
   sock_handlers_t *hdl;
+  int udp5353;
 
   set_debug_level(DBG_GLOBAL, 1000);
 
   tuni = bind_tcp_listener(8080);
   hdl = cdata_get_handlers(tuni);
   hdl->ev_read = tun_read_ev;
+
+  udp5353 = bind_udp_listener_specific("::", 5353, NULL);
+  hdl = cdata_get_handlers(udp5353);
+  hdl->ev_read = dns_read_ev;
+
+  LGL = lua_open();
+  lua_init_state(LGL);
+  if(luaL_dofile(LGL, "example-dns.lua")!=0) {
+    fprintf(stderr,"%s\n",lua_tostring(LGL,-1));
+    return NULL;
+  }
+
+
   while(1) {
     if (timeout == 0) { 
-      timeout = 100;
+      timeout = 1000;
     }
     timeout = sock_one_cycle(timeout, NULL);
   }
