@@ -16,18 +16,28 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
   http_parser_t *parser = &http_parser;
   http_parser_init(parser);
   if(http_parser_data(parser, d->buf, d->dsize)) {
-    char *reply = "This is a test!\n";
+    char *reply = "File not found!\n";
+    char *content_type = "text/plain";
     char headers[512];
     void *xfile;
     size_t xfile_sz;
 
     debug(DBG_GLOBAL, 1, "Parser done. Method: '%s', URI: '%s'", parser->req_method, parser->req_uri);
+    if(strstr(parser->req_uri, ".css")) {
+      content_type = "text/css";
+    } else if(strstr(parser->req_uri, ".html")) {
+      content_type = "text/html";
+    } else if(strstr(parser->req_uri, ".js")) {
+      content_type = "application/javascript";
+    }
 
     xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
     if(xfile) {
       reply = xfile;
+      snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)strlen(reply), content_type);
+    } else {
+      snprintf(headers, sizeof(headers)-1, "HTTP/1.0 404 Not Found\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)strlen(reply), content_type);
     }
-    snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: text/plain\r\n\r\n", (int)strlen(reply));
     sock_send_data(idx, dstrcpy(headers));
     sock_send_data(idx, dstrcpy(reply));
     if(xfile) {
