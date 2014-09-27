@@ -124,14 +124,13 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
     }
     memcpy(trailer, parser->end, parser->content_length);
     trailer[parser->content_length] = 0;
-    debug(0,0, "Parser trailer: '%s'", trailer);
+    debug(DBG_GLOBAL, 0, "Parser trailer: '%s'", trailer);
 
     xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
     if(xfile) {
       debug(0, 0, "File '%s' => size is %d", parser->req_uri+1, xfile_sz);
       xfile[xfile_sz] = 0;
       if(strstr(parser->req_uri, ".lua")) {
-	debug(0, 0, "Lua file load : '%s'", xfile);
         if(luaL_loadstring(L, xfile)) {
 	  debug(0, 0, "Lua file load error: %s", lua_tostring(L,-1));
         } else {
@@ -197,7 +196,7 @@ int main(int argc, char *argv[]) {
   sock_handlers_t *hdl;
   int udp5353;
 
-  set_debug_level(DBG_GLOBAL, 1000);
+  set_debug_level(DBG_GLOBAL, -1000);
 
   tuni = bind_tcp_listener(8080);
   hdl = cdata_get_handlers(tuni);
