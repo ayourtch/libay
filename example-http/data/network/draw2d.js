@@ -3531,7 +3531,7 @@ this.resizeHandleHalfWidth=parseInt(this.resizeHandle2.getWidth()/2);
 Canvas.call(this,id);
 this.setPanning(false);
 if(this.html!=null){
-this.html.style.backgroundImage="url(grid_10.png)";
+// this.html.style.backgroundImage="url(grid_10.png)";
 oThis=this;
 this.html.tabIndex="0";
 var _3adc=function(){

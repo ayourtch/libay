@@ -27,15 +27,16 @@ static int lua_fn_dsend(lua_State *L) {
   int n = lua_gettop(L);
   int idx = lua_tonumber(L, 1);
   size_t len;
+  int nwrote;
   char *data = (void *)lua_tolstring(L, 2, &len);
   dbuf_t *d = dalloc(len);
 
   memcpy(d->buf, data, len);
   d->dsize = len;
-  sock_write_data(idx, d);
+  sock_write_data(idx, d, &nwrote);
   dunlock(d);
 
-  lua_pushnumber(L, len);
+  lua_pushnumber(L, nwrote);
 
   return 1;
 }
@@ -101,14 +102,14 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
         }
       } else {
         snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)xfile_sz, content_type);
-        sock_write_data(idx, dstrcpy(headers));
-        sock_write_data(idx, dalloc_ptr(xfile, xfile_sz));
+        dunlock(sock_write_data(idx, dstrcpy(headers), NULL));
+        dunlock(sock_write_data(idx, dalloc_ptr(xfile, xfile_sz), NULL));
 	xfile = NULL;
       }
     } else {
       snprintf(headers, sizeof(headers)-1, "HTTP/1.0 404 Not Found\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)strlen(reply), content_type);
-      sock_send_data(idx, dstrcpy(headers));
-      sock_send_data(idx, dstrcpy(reply));
+      dunlock(sock_send_data(idx, dstrcpy(headers), NULL));
+      dunlock(sock_send_data(idx, dstrcpy(reply), NULL));
     }
     if(xfile) {
       free(xfile);
@@ -135,7 +136,7 @@ int main(int argc, char *argv[]) {
   hdl->ev_read = tun_read_ev;
   while(1) {
     if (timeout == 0) { 
-      timeout = 1000;
+      timeout = 100;
     }
     timeout = sock_one_cycle(timeout, NULL);
   }
