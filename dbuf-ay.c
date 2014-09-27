@@ -414,7 +414,7 @@ dstrcpy(const char *str)
   dbuf_t *temp = dalloc(strlen(str) + 1);
 
   if(temp) {
-    strcpy((void *) temp->buf, str);
+    memcpy((void *) temp->buf, str, temp->size);
     temp->dsize = temp->size - 1;
   }
   return temp;
