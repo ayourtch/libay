@@ -102,6 +102,7 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
         snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)xfile_sz, content_type);
         sock_write_data(idx, dstrcpy(headers));
         sock_write_data(idx, dalloc_ptr(xfile, xfile_sz));
+	xfile = NULL;
       }
     } else {
       snprintf(headers, sizeof(headers)-1, "HTTP/1.0 404 Not Found\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: %s\r\n\r\n", (int)strlen(reply), content_type);
