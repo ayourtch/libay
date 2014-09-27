@@ -437,6 +437,7 @@ dsubstrcpy(dbuf_t *d, int start, int howmany)
   if ((start < d->dsize) && (start + howmany <= d->dsize)) {
     temp = dalloc(howmany);
     memcpy(temp->buf, &d->buf[start], howmany);
+    temp->dsize = howmany;
   }
   return temp;
 }
