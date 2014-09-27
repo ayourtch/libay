@@ -6,6 +6,8 @@
 #include "sock-ay.h"
 #include "http-parser.h"
 
+#include "miniz.c"
+
 int tuni;
 http_parser_t http_parser;
 
@@ -16,12 +18,21 @@ int tun_read_ev(int idx, dbuf_t *d, void *p) {
   if(http_parser_data(parser, d->buf, d->dsize)) {
     char *reply = "This is a test!\n";
     char headers[512];
+    void *xfile;
+    size_t xfile_sz;
 
     debug(DBG_GLOBAL, 1, "Parser done. Method: '%s', URI: '%s'", parser->req_method, parser->req_uri);
 
+    xfile = mz_zip_extract_archive_file_to_heap("data.zip", parser->req_uri+1, &xfile_sz, 0);
+    if(xfile) {
+      reply = xfile;
+    }
     snprintf(headers, sizeof(headers)-1, "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: %d\r\nContent-type: text/plain\r\n\r\n", (int)strlen(reply));
     sock_send_data(idx, dstrcpy(headers));
     sock_send_data(idx, dstrcpy(reply));
+    if(xfile) {
+      free(xfile);
+    }
   } else {
     return 0;
   }
