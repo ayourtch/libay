@@ -10,6 +10,6 @@ function request(idx)
     reply = reply .. "\n" .. row.name
   end
 
-  local headers = "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: " .. #reply .. "\r\nContent-type: text/plain\r\n\r\n"
+  local headers = "HTTP/1.0 200 OK\r\nConnection: keep-alive\r\nContent-length: " .. #reply .. "\r\nContent-type: text/plain; charset=utf-8\r\n\r\n"
   dsend(idx, headers .. reply)
 end
