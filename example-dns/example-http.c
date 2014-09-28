@@ -178,7 +178,7 @@ int dns_read_ev(int idx, dbuf_t *d, void *p) {
 
   if(lua_isfunction(LGL, -1)) {
     lua_pushstring(LGL, v6addr_text);
-    lua_pushinteger(LGL, v6_addr.sin6_port);
+    lua_pushinteger(LGL, ntohs(v6_addr.sin6_port));
     lua_pushlstring(LGL, d->buf, d->dsize);
     if (lua_pcall(LGL, 3, 0, 0) != 0) {
       fprintf(stderr, "Could not call function %s(): %s\n", cbname, lua_tostring(LGL,-1));
