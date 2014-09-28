@@ -177,6 +177,7 @@ local special_tostrings = {
 local rr_metatable = {};   -- - - - - - - - - - - - - - - - - - -  rr_metatable
 function rr_metatable.__tostring(rr)
 	local rr_string = (special_tostrings[rr.type] or default_rr_tostring)(rr);
+        local rr_name = rr.name or "NIL"
 	return string.format('%2s %-5s %6i %-28s %s', rr.class, rr.type, rr.ttl, rr.name, rr_string);
 end
 
@@ -385,6 +386,7 @@ end
 function resolver:A(rr)    -- - - - - - - - - - - - - - - - - - - - - - - -  A
 	local b1, b2, b3, b4 = self:byte(4);
 	rr.a = string.format('%i.%i.%i.%i', b1, b2, b3, b4);
+	rr.val = rr.a
 end
 
 function resolver:AAAA(rr)
@@ -400,21 +402,25 @@ function resolver:AAAA(rr)
 	end
 	if #zeros == 0 then
 		rr.aaaa = addr;
+		rr.val = rr.aaaa
 		return
 	elseif #zeros > 1 then
 		table.sort(zeros, function(a, b) return #a > #b end);
 	end
 	rr.aaaa = addr:gsub(zeros[1], "::", 1):gsub("^0::", "::"):gsub("::0$", "::");
+	rr.val = rr.aaaa
 end
 
 function resolver:CNAME(rr)    -- - - - - - - - - - - - - - - - - - - -  CNAME
 	rr.cname = self:name();
+	rr.val = rr.cname
 end
 
 
 function resolver:MX(rr)    -- - - - - - - - - - - - - - - - - - - - - - -  MX
 	rr.pref = self:word();
 	rr.mx   = self:name();
+	rr.val = rr.pref .. " " .. rr.mx
 end
 
 
@@ -436,6 +442,7 @@ function resolver:LOC(rr)    -- - - - - - - - - - - - - - - - - - - - - -  LOC
 		rr.loc.longitude = self:dword();
 		rr.loc.altitude  = self:dword();
 	end
+	rr.val = rr.loc
 end
 
 
@@ -476,6 +483,7 @@ end
 
 function resolver:NS(rr)    -- - - - - - - - - - - - - - - - - - - - - - -  NS
 	rr.ns = self:name();
+	rr.val = rr.ns
 end
 
 
@@ -489,14 +497,18 @@ function resolver:SRV(rr)    -- - - - - - - - - - - - - - - - - - - - - -  SRV
 	  rr.srv.weight   = self:word();
 	  rr.srv.port     = self:word();
 	  rr.srv.target   = self:name();
+	  rr.val = string.format("%d %d %d %s", rr.srv.priority, rr.srv.weight, rr.srv.port, rr.srv.target)
 end
 
 function resolver:PTR(rr)
 	rr.ptr = self:name();
+	rr.val = rr.ptr
 end
 
 function resolver:TXT(rr)    -- - - - - - - - - - - - - - - - - - - - - -  TXT
-	rr.txt = self:sub (self:byte());
+	rr.txt = {};
+        table.insert(rr.txt, self:sub (self:byte()));
+	rr.val = rr.txt[1]
 end
 
 
