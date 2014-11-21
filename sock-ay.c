@@ -894,8 +894,9 @@ int detach_stdin()
 void
 sock_tcp_listener_pollin(int i, void *u_ptr)
 {
-  struct sockaddr_in sin1;
+  struct sockaddr_in6 sin1, sin2;
   unsigned int sin1sz = sizeof(sin1);
+  unsigned int sin2sz = sizeof(sin2);
   //int revents_save = ufds[i].revents;
 
   ufds[i].revents = 0;
@@ -905,9 +906,18 @@ sock_tcp_listener_pollin(int i, void *u_ptr)
   int newidx = sock_get_free_index(0);
 
   debug(DBG_GLOBAL, 1, "after accept");
-  debug(DBG_GLOBAL, 1,
-        "New inbound connection on index %d from %s:%d -> trying to use index %d",
-        i, inet_ntoa(sin1.sin_addr), ntohs(sin1.sin_port), newidx);
+  {
+    char namebuf1[INET6_ADDRSTRLEN], namebuf2[INET6_ADDRSTRLEN];
+    if (getsockname(s1, (struct sockaddr *)&sin2, &sin2sz) != -1) {
+      inet_ntop(AF_INET6, &sin2.sin6_addr, namebuf2, sizeof(namebuf2));
+    } else {
+      strcpy(namebuf2, "unknown");
+    }
+    inet_ntop(AF_INET6, &sin1.sin6_addr, namebuf1, sizeof(namebuf1));
+    debug(DBG_GLOBAL, 1,
+        "New inbound connection on index %d from %s:%d to %s:%d -> trying to use index %d",
+        i, namebuf1, ntohs(sin1.sin6_port), namebuf2, ntohs(sin2.sin6_port), newidx);
+  }
   debug(DBG_GLOBAL, 10, "%d:LISTEN-POLLIN", i);
   if(nfds < MAX_FDS) {
     fcntl(s1, F_SETFL, O_NONBLOCK);
