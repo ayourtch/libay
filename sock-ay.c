@@ -731,7 +731,9 @@ bind_socket_listener_specific(int newidx, int s, char *addr, int port)
   if(addr != NULL) {
     if (strcmp(addr, "*") == 0) {
 #ifdef WITH_TRANSPARENT_SOCKET
-      notminus(setsockopt(s, SOL_IP, IP_TRANSPARENT, &on, sizeof on), "setsockopt IP_TRANSPARENT");
+      /* notminus(setsockopt(s, SOL_IP, IP_TRANSPARENT, &on, sizeof on), "setsockopt IP_TRANSPARENT"); */
+      /* The IP_FREEBIND appears to not require extra privileges and still works the same */
+      notminus(setsockopt(s, SOL_IP, IP_FREEBIND, &on, sizeof on), "setsockopt IP_FREEBIND");
 #endif
       addr = "::";
     } 
