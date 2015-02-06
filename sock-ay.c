@@ -687,7 +687,9 @@ create_tcp_socket()
   s = socket(PF_INET6, SOCK_STREAM, 0);
   notminus(s, "could not create socket");
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+#ifdef SO_REUSEPORT
   setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+#endif
   return s;
 }
 
@@ -700,7 +702,9 @@ create_udp_socket()
   s = socket(PF_INET6, SOCK_DGRAM, 0);
   notminus(s, "could not create socket");
   setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+#ifdef SO_REUSEPORT
   setsockopt(s, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+#endif
   return s;
 }
 
