@@ -52,7 +52,7 @@ void
 print_dbuf(debug_type_t logtype, int loglevel, dbuf_t * d)
 {
   if(is_debug_on(logtype, loglevel)) {
-    debug(logtype, loglevel, "dbuf: %x", d);
+    debug(logtype, loglevel, "dbuf: %p", d);
     debug(logtype, loglevel, "size: %6d, dsize: %6d", d->size, d->dsize);
     debug(logtype, loglevel, "allocator backtrace size: %d",
           d->allocator.size);
@@ -79,14 +79,14 @@ void
 dchecksig(dbuf_t * d)
 {
   if(d->signature != DBUF_SIGNATURE) {
-    debug(DBG_GLOBAL, 0, "dchecksig: signature for %x is %x", d,
+    debug(DBG_GLOBAL, 0, "dchecksig: signature for %p is %p", d,
           d->signature);
     print_dbuf(0, 0, d);
     print_backtrace();
     assert(d->signature == DBUF_SIGNATURE);
   }
   if(d->savebuf != d->buf) {
-    debug(DBG_GLOBAL, 0, "dchecksig: error with %x: savebuf: %x, buf: %x", d,
+    debug(DBG_GLOBAL, 0, "dchecksig: error with %p: savebuf: %p, buf: %p", d,
           d->savebuf, d->buf);
     print_dbuf(0, 0, d);
     print_backtrace();
@@ -102,7 +102,7 @@ print_dbufs(void)
   int count = 0;
   listitem_t *li = dbuf_list;
 
-  debug(DBG_GLOBAL, 0, "DBUF list: %x", dbuf_list);
+  debug(DBG_GLOBAL, 0, "DBUF list: %p", dbuf_list);
   while(li) {
     d = li->data;
     if(d != NULL) {
@@ -181,7 +181,7 @@ dalloc(int size)
   get_backtrace(&d->allocator);
   bzero(&d->releaser, sizeof(d->releaser));
   //LISTXXX d->list_entry = lpush(&dbuf_list, d);
-  debug(DBG_MEMORY, 10, "dalloc of %d bytes, result %x", size, d);
+  debug(DBG_MEMORY, 10, "dalloc of %d bytes, result %p", size, d);
   check_dbuf_list();
   return d;
 }
@@ -215,7 +215,7 @@ dcheckusig(dbuf_t *d, const char *uptype_sig)
   if(d) {
     result = (d->uptype_sig == uptype_sig);
     if(!result) {
-      debug(DBG_MEMORY, 0, "uptype sig check failed for %x, expected: %s, got: %s", d, uptype_sig, d->uptype_sig);
+      debug(DBG_MEMORY, 0, "uptype sig check failed for %p, expected: %s, got: %s", d, uptype_sig, d->uptype_sig);
     }
   } else {
     result = 1;
@@ -227,7 +227,7 @@ void
 ddestructor(dbuf_t * d, dbuf_destructor_t destr)
 {
   d->destructor = destr;
-  debug(DBG_MEMORY, 10, "ddestructor set destructor %x for dbuf %x",
+  debug(DBG_MEMORY, 10, "ddestructor set destructor %p for dbuf %p",
         d->destructor, d);
 }
 
@@ -275,7 +275,7 @@ dlock(void *ptr)
   check_dbuf_list();
   dchecksig(d);
   d->lock++;
-  debug(DBG_MEMORY, 10, "dlock of %x, new lock count is %d", d, d->lock);
+  debug(DBG_MEMORY, 10, "dlock of %p, new lock count is %d", d, d->lock);
   return d;
 }
 
@@ -298,7 +298,7 @@ dunlock(void *ptr)
   if(d != NULL) {
     dchecksig(d);
     d->lock--;
-    debug(DBG_MEMORY, 10, "dunlock of %x, new lock count is %d", d, d->lock);
+    debug(DBG_MEMORY, 10, "dunlock of %p, new lock count is %d", d, d->lock);
     assert(d->lock >= 0);
     if (d->dsize > d->size) {
       debug(0,0, "dsize > size, impossible. Memory corruption has/will occur. dumping the block and quitting");
@@ -308,7 +308,7 @@ dunlock(void *ptr)
     
     if(d->lock == 0) {
       if(d->destructor != NULL) {
-        debug(DBG_MEMORY, 10, "dunlock calling destructor %x", d->destructor);
+        debug(DBG_MEMORY, 10, "dunlock calling destructor %p", d->destructor);
         d->destructor(d);
       }
       get_backtrace(&d->releaser);
@@ -353,7 +353,7 @@ dresize(dbuf_t * d, size_t size)
   dchecksig(d);
 
   debug(DBG_MEMORY, 10,
-        "dresize of %x, curr size: %d, dsize: %d, req size: %d, old buf: %x, new buf: %x",
+        "dresize of %p, curr size: %d, dsize: %d, req size: %d, old buf: %p, new buf: %p",
         d, d->size, d->dsize, size, d->buf, buf);
   if(buf == NULL) {
     return 0;
@@ -538,7 +538,7 @@ dxcat(dbuf_t * target, dbuf_t * source, int start, int len)
 
   if(start + len > source->dsize) {
     debug(DBG_MEMORY, 10,
-          "dxcat: Trying to copy % bytes from %d offset, but the total len is %d");
+          "dxcat: Trying to copy %d bytes from %d offset, but the total len is %d", len, start, source->dsize);
     return 0;
   }
 
@@ -601,7 +601,7 @@ dappendfill(dbuf_t * target, char c, int count)
           target->dsize, count);
     target->dsize = target->dsize + count;
     debug(DBG_MEMORY, 10, "new dsize after grow: %d", target->dsize);
-    debug(DBG_MEMORY, 10, "old buf before grow: %x, new buf: %x", sav,
+    debug(DBG_MEMORY, 10, "old buf before grow: %p, new buf: %p", sav,
           target->buf);
     return count;
   } else {
@@ -725,7 +725,7 @@ dwritefile(dbuf_t * d, char *fname)
     close(fd);
     return 1;
   } else {
-    debug(DBG_GLOBAL, 0, "Could not open file %s for writing to save dbuf %x",
+    debug(DBG_GLOBAL, 0, "Could not open file %s for writing to save dbuf %p",
           fname, d);
     return 0;
   }

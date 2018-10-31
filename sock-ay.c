@@ -66,18 +66,18 @@ void
 print_cdata(int i, int debuglevel)
 {
   debug(DBG_GLOBAL, debuglevel, "CDATA for %d:", i);
-  debug(DBG_GLOBAL, debuglevel, "  xmit_list: %x", cdata[i].xmit_list);
+  debug(DBG_GLOBAL, debuglevel, "  xmit_list: %p", cdata[i].xmit_list);
   debug(DBG_GLOBAL, debuglevel, "  written: %d", cdata[i].written);
   debug(DBG_GLOBAL, debuglevel, "  listener: %d", cdata[i].listener);
   debug(DBG_GLOBAL, debuglevel, "  listener_port: %d", cdata[i].listen_port);
   debug(DBG_GLOBAL, debuglevel, "  is_udp: %d", cdata[i].is_udp);
   debug(DBG_GLOBAL, debuglevel, "  do_ssl: %d", cdata[i].do_ssl);
   debug(DBG_GLOBAL, debuglevel, "  is_ssl: %d", cdata[i].is_ssl);
-  debug(DBG_GLOBAL, debuglevel, "  ssl: %x", cdata[i].ssl);
+  debug(DBG_GLOBAL, debuglevel, "  ssl: %p", cdata[i].ssl);
   debug(DBG_GLOBAL, debuglevel, "  apptype: %d", cdata[i].apptype);
-  debug(DBG_GLOBAL, debuglevel, "  appdata: %x", cdata[i].appdata);
+  debug(DBG_GLOBAL, debuglevel, "  appdata: %p", cdata[i].appdata);
   debug(DBG_GLOBAL, debuglevel, "  l7state: %d", cdata[i].l7state);
-  debug(DBG_GLOBAL, debuglevel, "  recv_list: %x", cdata[i].recv_list);
+  debug(DBG_GLOBAL, debuglevel, "  recv_list: %p", cdata[i].recv_list);
 }
 
 /* Dump all we know about sockets */
@@ -94,7 +94,7 @@ void
 pkt_dprint_cdata(int i, dbuf_t * d)
 {
   dxprintf(d,
-          "  %d:%s  do_ssl:%d,ssl:%d,listen:%d,lport:%-5d fd:%-5d revents:%x\n",
+          "  %d:%s  do_ssl:%d,ssl:%d,listen:%d,lport:%-5d fd:%-5d revents:%p\n",
           i, cdata[i].is_udp ? "udp" : "tcp", cdata[i].do_ssl,
           cdata[i].is_ssl, cdata[i].listener, cdata[i].listen_port,
           ufds[i].fd, ufds[i].revents);
@@ -1081,7 +1081,7 @@ sock_connected_pollin(int i, void *u_ptr)
 
     debug(DBG_GLOBAL, 11, "..on a Xconnected socket (idx %d)", i);
     d = dalloc(CHUNK_SZ);
-    debug(DBG_GLOBAL, 11, "sock_connected_pollin: new dbuf %x (idx %d)", d,
+    debug(DBG_GLOBAL, 11, "sock_connected_pollin: new dbuf %p (idx %d)", d,
           i);
     if(d != NULL) {
       ret = sock_receive_data(i, d);
@@ -1095,7 +1095,7 @@ sock_connected_pollin(int i, void *u_ptr)
         close_idx(i, u_ptr);
       } 
       // those who needed this have copied it already 
-      debug(DBG_GLOBAL, 11, "sock_connected_pollin: freeing buffer %x", d);
+      debug(DBG_GLOBAL, 11, "sock_connected_pollin: freeing buffer %p", d);
       dunlock(d);
     } else {
       debug(DBG_GLOBAL, 11, ".. NOT allocated chunk (idx %d)", i);

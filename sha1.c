@@ -110,7 +110,7 @@ void SHA1_Transform(uint32_t state[5], const uint8_t buffer[64]);
 
 #ifdef VERBOSE  /* SAK */
 void SHAPrintContext(SHA1_CTX *context, char *msg){
-  printf("%s (%d,%d) %x %x %x %x %x\n",
+  printf("%s (%d,%d) %p %p %p %p %p\n",
 	 msg,
 	 context->count[0], context->count[1], 
 	 context->state[0],

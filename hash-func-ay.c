@@ -922,7 +922,7 @@ void driver3()
   i=47, j=0;
   hashword2(&len, 1, &i, &j);
   if (hashword(&len, 1, 47) != i)
-    printf("hashword2 and hashword mismatch %x %x\n", 
+    printf("hashword2 and hashword mismatch %p %p\n", 
 	   i, hashword(&len, 1, 47));
 
   /* check hashlittle doesn't read before or after the ends of the string */
