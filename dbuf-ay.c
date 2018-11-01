@@ -79,7 +79,7 @@ void
 dchecksig(dbuf_t * d)
 {
   if(d->signature != DBUF_SIGNATURE) {
-    debug(DBG_GLOBAL, 0, "dchecksig: signature for %p is %p", d,
+    debug(DBG_GLOBAL, 0, "dchecksig: signature for %p is %lx", d,
           d->signature);
     print_dbuf(0, 0, d);
     print_backtrace();
@@ -353,7 +353,7 @@ dresize(dbuf_t * d, size_t size)
   dchecksig(d);
 
   debug(DBG_MEMORY, 10,
-        "dresize of %p, curr size: %d, dsize: %d, req size: %d, old buf: %p, new buf: %p",
+        "dresize of %p, curr size: %d, dsize: %d, req size: %ld, old buf: %p, new buf: %p",
         d, d->size, d->dsize, size, d->buf, buf);
   if(buf == NULL) {
     return 0;
