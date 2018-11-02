@@ -281,7 +281,7 @@ print_backtrace_t(debug_type_t debugtype, int debuglevel, backtrace_t * bt)
   strings = backtrace_symbols(bt->addresses, bt->size);
   debug(debugtype, debuglevel, "backtrace of %zd stack frames.", bt->size);
   for(i = 0; i < bt->size; i++)
-    debug(debugtype, debuglevel, "%d: %s", i, strings[i]);
+    debug(debugtype, debuglevel, "%ld: %s", i, strings[i]);
   free(strings);
 }
 
