@@ -292,7 +292,7 @@ print_backtrace_t_hex(debug_type_t debugtype, int debuglevel, backtrace_t * bt)
 
   debug(debugtype, debuglevel, "backtrace of %zd stack frames.", bt->size);
   for(i = 0; i < bt->size; i++)
-    debug(debugtype, debuglevel, "%d: %x", i, bt->addresses[i]);
+    debug(debugtype, debuglevel, "%d: %p", i, bt->addresses[i]);
 }
 
 

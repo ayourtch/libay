@@ -180,7 +180,7 @@ lbelongs(listitem_t ** li, listitem_t * li_el)
     }
     li2 = li2->next;
   }
-  debug(DBG_GLOBAL, 0, "List check: %x is not in the list %x", li_el, *li);
+  debug(DBG_GLOBAL, 0, "List check: %p is not in the list %p", li_el, *li);
   if (li_el) {
     listitem_checksig(li_el);
   }
@@ -192,7 +192,7 @@ ldelete(listitem_t ** li, listitem_t * li_el)
 {
   //listitem_t *li2;
 
-  debug(DBG_GLOBAL, 10, "deleting item %x from list %x/%x", li_el, li, li ? *li : NULL);
+  debug(DBG_GLOBAL, 10, "deleting item %p from list %p/%p", li_el, li, li ? *li : NULL);
   if(li == NULL) {
     return;
   }
