@@ -253,7 +253,7 @@ timer_delete_internal(uint32_t timer_idx)
 {
   timerwheel_entry_t *timers = (timerwheel_entry_t *) timers_list->buf;
 
-  debug(DBG_TIMERS, 10, "timer_delete_internal: %d, list: %p, li: %p",
+  debug(DBG_TIMERS, 10, "timer_delete_internal: %d, list: %x, li: %x",
         timer_idx, timerwheel[timers[timer_idx].wheel_idx],
         timers[timer_idx].wheel_li);
   check_timer_index(timer_idx);
@@ -290,7 +290,7 @@ fire_timer(uint32_t idx)
     assert(0);
     return;
   default:
-    debug(DBG_TIMERS, 0, "Invalid timer state %d for timer %p",
+    debug(DBG_TIMERS, 0, "Invalid timer state %d for timer %x",
           timers[idx].state, timer_id);
     return;
   }
@@ -298,24 +298,24 @@ fire_timer(uint32_t idx)
     timers[idx].user.callback(timer_id, timers[idx].user.param_int, &timers[idx].user.param_uuid,
                               timers[idx].user.param_dbuf);
   }
-  debug(DBG_TIMERS, 3, "Timer %p (%d:%d) fired at wheel index %d",
+  debug(DBG_TIMERS, 3, "Timer %x (%d:%d) fired at wheel index %d",
         timer_id, idx, timers[idx].generation, timerwheel_idx);
   switch (timers[idx].state) {
   case TIMER_ONETIME:
-    debug(DBG_TIMERS, 1, "Timer %p onetime, deactivate", timer_id);
+    debug(DBG_TIMERS, 1, "Timer %x onetime, deactivate", timer_id);
     timer_deactivate_internal(idx);
     break;
   case TIMER_PERIODIC:
-    debug(DBG_TIMERS, 2, "Timer %p periodic with interval %d, reenqueue",
+    debug(DBG_TIMERS, 2, "Timer %x periodic with interval %d, reenqueue",
           timer_id, timers[idx].period);
     timer_enqueue_internal(idx, timers[idx].period);
     break;
   case TIMER_INACTIVE:
-    debug(DBG_TIMERS, 1, "Timer %p probably stopped from within the handler",
+    debug(DBG_TIMERS, 1, "Timer %x probably stopped from within the handler",
           timer_id);
     break;
   default:
-    debug(DBG_TIMERS, 0, "Invalid after-fire timer state %d for timer %p",
+    debug(DBG_TIMERS, 0, "Invalid after-fire timer state %d for timer %x",
           timers[idx].state, timer_id);
   }
 }
@@ -482,7 +482,7 @@ start_timer(int interval, int timer_kind, timer_callback_t callback,
   }
   timer_enqueue_internal(mytimer, interval);
   out = (timers[mytimer].generation << 24) + mytimer;
-  debug(DBG_TIMERS, 10, "Started timer %p of kind %d with interval %d",
+  debug(DBG_TIMERS, 10, "Started timer %x of kind %d with interval %d",
         out, timer_kind, interval);
   return out;
 }
@@ -520,7 +520,7 @@ stop_timer(uint32_t timer_id)
           timer_id);
     break;
   default:
-    debug(DBG_TIMERS, 0, "%d: inconsistent timer state %p", timer_id,
+    debug(DBG_TIMERS, 0, "%d: inconsistent timer state %x", timer_id,
           timers[idx].state);
   }
   return 0;

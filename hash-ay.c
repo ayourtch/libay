@@ -64,8 +64,8 @@ uint32_t h_index(htable_t *ht, void *key, int key_len)
   uint32_t idx;
   assert(ht != NULL);
   idx = hashmask(ht->index_bits) & hashlittle(key, key_len, HASH_INIT_VAL);
-  //printf("h_index: (%llx): %p (key: '%s', key_len=%d)\n", (long long)ht, idx, (char *)key, key_len);
-  //debug(0,0, "h_index: (%llx): %p (key: '%s', key_len=%d)\n", (long long)ht, idx, (char *)key, key_len);
+  //printf("h_index: (%llx): %x (key: '%s', key_len=%d)\n", (long long)ht, idx, (char *)key, key_len);
+  //debug(0,0, "h_index: (%llx): %x (key: '%s', key_len=%d)\n", (long long)ht, idx, (char *)key, key_len);
   //debug_dump(0,0, key, key_len);
   return idx;
 }
